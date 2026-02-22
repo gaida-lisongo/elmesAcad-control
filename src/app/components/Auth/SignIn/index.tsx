@@ -113,7 +113,7 @@ const Signin = () => {
           href="/mot-de-passe-oublie"
           className="mb-2 inline-block text-base text-dark hover:text-primary dark:text-white dark:hover:text-primary"
         >
-          Mot de passe oubli\u00e9&nbsp;?
+          Mot de passe oublié?
         </Link>
       </div>
     </div>

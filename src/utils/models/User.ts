@@ -5,7 +5,9 @@ export interface IUser extends Document {
   nomComplet: string;
   email: string;
   motDePasse: string;
-  autorisations: string[]; // ex: ['manage_clients', 'view_reports']
+  autorisations: string[];
+  resetToken?: string;
+  resetTokenExpiry?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +33,8 @@ const AdminSchema: Schema<IAdmin> = new Schema(
     motDePasse: { type: String, required: true },
     role: { type: String, enum: ["admin", "client"], required: true },
     autorisations: { type: [String], default: [] },
+    resetToken: { type: String },
+    resetTokenExpiry: { type: Date },
   },
   { timestamps: true },
 );
@@ -47,6 +51,8 @@ const ClientSchema: Schema<IClient> = new Schema(
     apiKey: { type: String, required: true, unique: true },
     apiSecret: { type: String, required: true },
     isActive: { type: Boolean, default: true },
+    resetToken: { type: String },
+    resetTokenExpiry: { type: Date },
   },
   { timestamps: true },
 );
