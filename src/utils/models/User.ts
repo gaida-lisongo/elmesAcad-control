@@ -51,11 +51,10 @@ const ClientSchema: Schema<IClient> = new Schema(
   { timestamps: true },
 );
 
-export const Admin: Model<IAdmin> = mongoose.model<IAdmin>(
-  "Admin",
-  AdminSchema,
-);
-export const Client: Model<IClient> = mongoose.model<IClient>(
-  "Client",
-  ClientSchema,
-);
+export const Admin: Model<IAdmin> =
+  (mongoose.models.Admin as Model<IAdmin>) ||
+  mongoose.model<IAdmin>("Admin", AdminSchema);
+
+export const Client: Model<IClient> =
+  (mongoose.models.Client as Model<IClient>) ||
+  mongoose.model<IClient>("Client", ClientSchema);
