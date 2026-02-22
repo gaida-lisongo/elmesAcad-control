@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@iconify/react";
-import toast, { Toaster } from "react-hot-toast";
+import { signOut } from "next-auth/react";
+import { useAuthStore } from "@/store/authStore";
 
 const NAV_GROUPS = [
   {
@@ -52,17 +53,15 @@ const NAV_GROUPS = [
 
 export default function BackofficeSideNav() {
   const pathname = usePathname();
+  const clearUser = useAuthStore((s) => s.clearUser);
 
-  function handleLogout() {
-    // TODO: signOut() from next-auth → signOut({ callbackUrl: "/signin" })
-    toast("Déconnexion simulée — TODO: brancher next-auth signOut()", {
-      icon: "🔒",
-    });
+  async function handleLogout() {
+    clearUser();
+    await signOut({ callbackUrl: "/signin" });
   }
 
   return (
     <>
-      <Toaster position="top-right" />
       <div className="flex flex-col gap-4 mt-4 fixed pe-4">
         {NAV_GROUPS.map((group) => (
           <div key={group.label}>

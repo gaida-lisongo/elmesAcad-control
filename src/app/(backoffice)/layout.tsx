@@ -1,22 +1,15 @@
 import BackofficeSideNav from "./_components/BackofficeSideNav";
-
-// TODO: authGuard — uncomment and implement when auth is ready
-// import { getServerSession } from "next-auth";
-// import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-// import { redirect } from "next/navigation";
-//
-// async function requireAuth() {
-//   const session = await getServerSession(authOptions);
-//   if (!session) redirect("/signin");
-//   return session;
-// }
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function BackofficeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // TODO: authGuard — await requireAuth() here before rendering
+  const session = await getServerSession(authOptions);
+  if (!session) redirect("/signin");
 
   return (
     <div className="dark:bg-darkmode min-h-screen">

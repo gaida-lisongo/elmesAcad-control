@@ -3,9 +3,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import SocialSignIn from "../SocialBTN/SocialSignIn";
 import Logo from "@/app/components/Layout/Header/Logo";
 import Loader from "@/app/components/Common/Loader";
+import { useAuthStore } from "@/store/authStore";
 
 const Signin = () => {
   const router = useRouter();
@@ -68,15 +68,6 @@ const Signin = () => {
         <Logo />
       </div>
 
-      <SocialSignIn />
-
-      <span className="z-1 relative my-8 block text-center">
-        <span className="-z-1 absolute left-0 top-1/2 block h-px w-full bg-border dark:bg-dark_border"></span>
-        <span className="text-muted dark:text-white/60 relative z-10 inline-block bg-white px-3 text-base dark:bg-darklight">
-          OR
-        </span>
-      </span>
-
       <form onSubmit={handleSubmit}>
         {authError && (
           <p className="text-red-500 text-sm mb-4 rounded-lg bg-red-500/5 px-4 py-2">
@@ -86,49 +77,44 @@ const Signin = () => {
         <div className="mb-[22px]">
           <input
             type="email"
-            placeholder="Email"
+            placeholder="Adresse email"
+            value={loginData.email}
             onChange={(e) =>
               setLoginData({ ...loginData, email: e.target.value })
             }
-            className="w-full rounded-md border placeholder:text-gray-400  border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition  focus:border-primary focus-visible:shadow-none dark:border-border_color dark:text-white dark:focus:border-primary"
+            className="w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition placeholder:text-gray-400 focus:border-primary focus-visible:shadow-none dark:border-border_color dark:text-white dark:focus:border-primary"
           />
         </div>
         <div className="mb-[22px]">
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Mot de passe"
+            value={loginData.password}
             onChange={(e) =>
               setLoginData({ ...loginData, password: e.target.value })
             }
-            className="w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition  focus:border-primary focus-visible:shadow-none dark:border-border_color dark:text-white dark:focus:border-primary"
+            className="w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition focus:border-primary focus-visible:shadow-none dark:border-border_color dark:text-white dark:focus:border-primary"
           />
         </div>
         <div className="mb-9">
           <button
             type="submit"
-            className="flex w-full cursor-pointer items-center justify-center rounded-md border border-primary bg-primary hover:bg-primary/75 dark:hover:bg-darkprimary! px-5 py-3 text-base text-white font-medium transition duration-300 ease-in-out"
+            disabled={loading}
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-primary bg-primary hover:bg-primary/75 px-5 py-3 text-base text-white font-medium transition duration-300 ease-in-out disabled:opacity-60"
           >
-            Sign In
             {loading && <Loader />}
+            Se connecter
           </button>
         </div>
       </form>
+
       <div className="flex flex-col items-center justify-center">
         <Link
-          href="/forgot-password"
+          href="/mot-de-passe-oublie"
           className="mb-2 inline-block text-base text-dark hover:text-primary dark:text-white dark:hover:text-primary"
         >
-          Forget Password?
+          Mot de passe oubli\u00e9&nbsp;?
         </Link>
-        <p className="text-body-secondary text-base">
-          Not a member yet?{" "}
-          <Link
-            href={"./signup"}
-            className="text-dark dark:text-white hover:text-primary dark:hover:text-primary"
-          >
-            Sign Up
-          </Link>
-        </p>
       </div>
     </div>
   );
