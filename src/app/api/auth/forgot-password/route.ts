@@ -39,11 +39,12 @@ export async function POST(req: NextRequest) {
     const token = crypto.randomBytes(32).toString("hex");
     const resetUrl = `${process.env.NEXTAUTH_URL}/reinitialiser-mot-de-passe?token=${token}&email=${encodeURIComponent(email)}`;
 
-    await mailService.sendMail({
-      to: email,
-      subject: "Récupération de votre compte",
-      text: `Bonjour ${nomComplet},\n\nCliquez sur le lien suivant pour réinitialiser votre mot de passe :\n${resetUrl}\n\nCe lien est valable 1 heure.\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.`,
-      html: `
+    try {
+      await mailService.sendMail({
+        to: email,
+        subject: "Récupération de votre compte",
+        text: `Bonjour ${nomComplet},\n\nCliquez sur le lien suivant pour réinitialiser votre mot de passe :\n${resetUrl}\n\nCe lien est valable 1 heure.\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.`,
+        html: `
         <div style="font-family:sans-serif;max-width:560px;margin:auto">
           <h2 style="color:#ee7b11">Récupération de compte</h2>
           <p>Bonjour <strong>${nomComplet}</strong>,</p>
@@ -55,7 +56,13 @@ export async function POST(req: NextRequest) {
           <p style="color:#888;font-size:13px">Ce lien expire dans 1&nbsp;heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.</p>
         </div>
       `,
-    });
+      });
+    } catch (mailErr) {
+      // Si l'envoi échoue, on log le lien en console (fallback dev)
+      // et on retourne quand même 200 pour ne pas bloquer l'utilisateur
+      console.error("[forgot-password] mail error:", mailErr);
+      console.info(`[forgot-password] reset URL (fallback): ${resetUrl}`);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {

@@ -31,10 +31,13 @@ class MailService {
     this.transporter = nodemailer.createTransport({
       host,
       port,
-      secure: port === 465, // true si 465
+      secure: port === 465, // true = SSL implicite (port 465), false = STARTTLS (port 587)
       auth: {
         user,
         pass,
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     });
 
@@ -54,15 +57,20 @@ class MailService {
 
     const transporter = this.getTransporter();
 
-    const info = await transporter.sendMail({
-      from: `"ESURSI-APP" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to,
-      subject,
-      text,
-      html,
-    });
-
-    return info;
+    try {
+      const info = await transporter.sendMail({
+        from: `"ESURSI-APP" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+        to,
+        subject,
+        text,
+        html,
+      });
+      return info;
+    } catch (err) {
+      // Reset le transporter pour que la prochaine tentative recrée la connexion
+      this.transporter = null;
+      throw err;
+    }
   }
 
   /**
