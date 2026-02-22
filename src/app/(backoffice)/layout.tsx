@@ -1,33 +1,35 @@
+import BackofficeSideNav from "./_components/BackofficeSideNav";
+
+// TODO: authGuard — uncomment and implement when auth is ready
+// import { getServerSession } from "next-auth";
+// import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+// import { redirect } from "next/navigation";
+//
+// async function requireAuth() {
+//   const session = await getServerSession(authOptions);
+//   if (!session) redirect("/signin");
+//   return session;
+// }
+
 export default async function BackofficeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // TODO: authGuard — await requireAuth() here before rendering
+
   return (
-    <div className="flex h-screen">
-      <aside className="w-64 bg-gray-800 text-white p-4">
-        <h2 className="text-lg font-bold mb-4">Backoffice</h2>
-        <nav>
-          <ul>
-            <li className="mb-2">
-              <a href="#" className="hover:underline">
-                Dashboard
-              </a>
-            </li>
-            <li className="mb-2">
-              <a href="#" className="hover:underline">
-                Users
-              </a>
-            </li>
-            <li className="mb-2">
-              <a href="#" className="hover:underline">
-                Settings
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </aside>
-      <main className="flex-1 p-6 bg-gray-100">{children}</main>
+    <div className="dark:bg-darkmode min-h-screen">
+      <div className="container mx-auto lg:max-w-screen-xl md:max-w-screen-md p-6 !pt-24">
+        <div className="grid grid-cols-12 gap-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-3 col-span-12 lg:block hidden">
+            <BackofficeSideNav />
+          </div>
+          {/* Main content */}
+          <div className="lg:col-span-9 col-span-12">{children}</div>
+        </div>
+      </div>
     </div>
   );
 }

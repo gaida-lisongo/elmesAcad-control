@@ -1,0 +1,61 @@
+import mongoose, { Document, Model, Schema } from "mongoose";
+
+export interface IUser extends Document {
+  photoUrl?: string;
+  nomComplet: string;
+  email: string;
+  motDePasse: string;
+  autorisations: string[]; // ex: ['manage_clients', 'view_reports']
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IAdmin extends IUser {
+  role: "admin";
+}
+
+export interface IClient extends IUser {
+  logo: string;
+  uuid: string;
+  apiKey: string;
+  role: "client";
+  apiSecret: string;
+  isActive: boolean;
+}
+
+const AdminSchema: Schema<IAdmin> = new Schema(
+  {
+    photoUrl: { type: String },
+    nomComplet: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    motDePasse: { type: String, required: true },
+    role: { type: String, enum: ["admin", "client"], required: true },
+    autorisations: { type: [String], default: [] },
+  },
+  { timestamps: true },
+);
+
+const ClientSchema: Schema<IClient> = new Schema(
+  {
+    photoUrl: { type: String },
+    nomComplet: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    motDePasse: { type: String, required: true },
+    role: { type: String, enum: ["admin", "client"], required: true },
+    logo: { type: String, required: true },
+    uuid: { type: String, required: true, unique: true },
+    apiKey: { type: String, required: true, unique: true },
+    apiSecret: { type: String, required: true },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true },
+);
+
+export const Admin: Model<IAdmin> = mongoose.model<IAdmin>(
+  "Admin",
+  AdminSchema,
+);
+export const Client: Model<IClient> = mongoose.model<IClient>(
+  "Client",
+  ClientSchema,
+);

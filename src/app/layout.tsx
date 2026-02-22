@@ -1,9 +1,7 @@
 import { Manrope } from "next/font/google";
 import "./globals.css";
 import Header from "@/app/components/Layout/Header";
-import Footer from "@/app/components/Layout/Footer";
 import { ThemeProvider } from "next-themes";
-import ScrollToTop from "@/app/components/ScrollToTop";
 import SessionProviderComp from "@/app/provider/nextauth/SessionProvider";
 import { AuthDialogProvider } from "../context/AuthDialogContext";
 import NextTopLoader from "nextjs-toploader";
@@ -29,8 +27,6 @@ export default function RootLayout({
             >
               <Header />
               {children}
-              <Footer />
-              <ScrollToTop />
             </ThemeProvider>
           </SessionProviderComp>
         </AuthDialogProvider>
