@@ -1,14 +1,16 @@
-'use client'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import SocialSignUp from '../SocialBTN/socialSignUp'
-import Logo from '@/app/components/Layout/Header/Logo'
-import { useState } from 'react'
-import Loader from '@/app/components/Common/Loader'
+"use client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import SocialSignUp from "../SocialBTN/socialSignUp";
+import Logo from "@/app/components/Layout/Header/Logo";
+import { useState } from "react";
+import Loader from "@/app/components/Common/Loader";
 
 const SignUp = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,13 +24,15 @@ const SignUp = () => {
 
   const validateName = (name: string) => {
     if (!name.trim()) return "Name is required";
-    if (!/^[a-zA-Z\s]{3,}$/.test(name)) return "Name must be at least 3 characters and contain only letters";
+    if (!/^[a-zA-Z\s]{3,}$/.test(name))
+      return "Name must be at least 3 characters and contain only letters";
     return "";
   };
 
   const validateEmail = (email: string) => {
     if (!email.trim()) return "Email is required";
-    if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) return "Enter a valid email address";
+    if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email))
+      return "Enter a valid email address";
     return "";
   };
 
@@ -44,34 +48,64 @@ const SignUp = () => {
 
     setErrors((prev) => ({
       ...prev,
-      [name]: name === "name"
-        ? validateName(value)
-        : name === "email"
-          ? validateEmail(value)
-          : validatePassword(value),
+      [name]:
+        name === "name"
+          ? validateName(value)
+          : name === "email"
+            ? validateEmail(value)
+            : validatePassword(value),
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     const nameError = validateName(formData.name);
     const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
-
     setErrors({ name: nameError, email: emailError, password: passwordError });
-    if (nameError || emailError || passwordError) {
-      return;
-    }
+    if (nameError || emailError || passwordError) return;
 
     setLoading(true);
+    setAuthError("");
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      if (typeof window !== "undefined") {
-        localStorage.setItem("user", JSON.stringify({ user: formData.name }));
+      // 1) Register
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nomComplet: formData.name,
+          email: formData.email,
+          motDePasse: formData.password,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        const firstError =
+          data?.errors?.email?.[0] ||
+          data?.errors?.nomComplet?.[0] ||
+          data?.error ||
+          "Erreur lors de la création du compte.";
+        setAuthError(firstError);
+        return;
       }
-      router.push("/");
-    } catch (error) {
+
+      // 2) Auto sign-in after registration
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (result?.error) {
+        // Account created but sign-in failed — redirect to sign-in page
+        router.push("/signin");
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch {
+      setAuthError("Une erreur est survenue. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }
@@ -79,21 +113,26 @@ const SignUp = () => {
 
   return (
     <>
-      <div className='mb-10 text-center mx-auto inline-block'>
+      <div className="mb-10 text-center mx-auto inline-block">
         <Logo />
       </div>
 
       <SocialSignUp />
 
-      <span className='z-1 relative my-8 block text-center'>
-        <span className='-z-1 absolute left-0 top-1/2 block h-px w-full bg-border dark:bg-dark_border'></span>
-        <span className='text-muted dark:text-white/60 relative z-10 inline-block bg-white px-3 text-base dark:bg-dark'>
+      <span className="z-1 relative my-8 block text-center">
+        <span className="-z-1 absolute left-0 top-1/2 block h-px w-full bg-border dark:bg-dark_border"></span>
+        <span className="text-muted dark:text-white/60 relative z-10 inline-block bg-white px-3 text-base dark:bg-dark">
           OR
         </span>
       </span>
 
       <form onSubmit={handleSubmit}>
-        <div className='mb-[22px]'>
+        {authError && (
+          <p className="text-red-500 text-sm mb-4 rounded-lg bg-red-500/5 px-4 py-2">
+            {authError}
+          </p>
+        )}
+        <div className="mb-[22px]">
           <input
             type="text"
             placeholder="Name"
@@ -101,11 +140,15 @@ const SignUp = () => {
             value={formData.name}
             onChange={handleChange}
             required
-            className={`w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition placeholder:text-gray-300 focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary ${errors.name ? 'border-red-500' : 'border-stroke'}`}
+            className={`w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition placeholder:text-gray-300 focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary ${errors.name ? "border-red-500" : "border-stroke"}`}
           />
-          {errors.name && <p className="text-red-500 dark:text-red-500 text-sm mt-1">{errors.name}</p>}
+          {errors.name && (
+            <p className="text-red-500 dark:text-red-500 text-sm mt-1">
+              {errors.name}
+            </p>
+          )}
         </div>
-        <div className='mb-[22px]'>
+        <div className="mb-[22px]">
           <input
             type="email"
             placeholder="Email"
@@ -113,11 +156,15 @@ const SignUp = () => {
             value={formData.email}
             onChange={handleChange}
             required
-            className='w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition placeholder:text-gray-300 focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary'
+            className="w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition placeholder:text-gray-300 focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary"
           />
-          {errors.email && <p className="text-red-500 dark:text-red-500 text-sm mt-1">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-500 dark:text-red-500 text-sm mt-1">
+              {errors.email}
+            </p>
+          )}
         </div>
-        <div className='mb-[22px]'>
+        <div className="mb-[22px]">
           <input
             type="password"
             placeholder="Password"
@@ -125,38 +172,52 @@ const SignUp = () => {
             value={formData.password}
             onChange={handleChange}
             required
-            className='w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition placeholder:text-gray-300 focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary'
+            className="w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition placeholder:text-gray-300 focus:border-primary focus-visible:shadow-none dark:text-white dark:focus:border-primary"
           />
-          {errors.password && <p className="text-red-500 dark:text-red-500 text-sm mt-1">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-500 dark:text-red-500 text-sm mt-1">
+              {errors.password}
+            </p>
+          )}
         </div>
-        <div className='mb-9'>
+        <div className="mb-9">
           <button
-            type='submit'
-            className='flex w-full cursor-pointer items-center justify-center rounded-md border border-primary bg-primary hover:bg-primary/75 dark:hover:bg-darkprimary! px-5 py-3 text-base text-white font-medium transition duration-300 ease-in-out'>
+            type="submit"
+            className="flex w-full cursor-pointer items-center justify-center rounded-md border border-primary bg-primary hover:bg-primary/75 dark:hover:bg-darkprimary! px-5 py-3 text-base text-white font-medium transition duration-300 ease-in-out"
+          >
             Sign Up {loading && <Loader />}
           </button>
         </div>
       </form>
 
-      <p className='text-body-secondary mb-4 text-base'>
-        By creating an account you are agree with our{' '}
-        <a href='/#' className='text-dark dark:text-white hover:text-primary dark:hover:text-primary'>
+      <p className="text-body-secondary mb-4 text-base">
+        By creating an account you are agree with our{" "}
+        <a
+          href="/#"
+          className="text-dark dark:text-white hover:text-primary dark:hover:text-primary"
+        >
           Privacy
-        </a>{' '}
-        and{' '}
-        <a href='/#' className='text-dark dark:text-white hover:text-primary dark:hover:text-primary'>
+        </a>{" "}
+        and{" "}
+        <a
+          href="/#"
+          className="text-dark dark:text-white hover:text-primary dark:hover:text-primary"
+        >
           Policy
         </a>
       </p>
 
-      <p className='text-body-secondary text-base'>
+      <p className="text-body-secondary text-base">
         Already have an account?
-        <Link href={'./signin'} className='pl-2 text-dark dark:text-white hover:text-primary dark:hover:text-primary'>
+        <Link
+          href={"./signin"}
+          className="pl-2 text-dark dark:text-white hover:text-primary dark:hover:text-primary"
+        >
           Sign In
         </Link>
       </p>
     </>
-  )
-}
+  );
+};
 
-export default SignUp
+export default SignUp;
