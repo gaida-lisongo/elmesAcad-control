@@ -5,8 +5,20 @@ import { usePathname } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { signOut } from "next-auth/react";
 import { useAuthStore } from "@/store/authStore";
+import { useEffect, useState } from "react";
 
-const NAV_GROUPS = [
+interface MenuItem {
+  label: string;
+  href: string;
+  icon: string;
+}
+
+interface MenuGroup {
+  label: string;
+  items: MenuItem[];
+}
+
+const NAV_GROUPS: MenuGroup[] = [
   {
     label: "Général",
     items: [
@@ -53,17 +65,59 @@ const NAV_GROUPS = [
 
 export default function BackofficeSideNav() {
   const pathname = usePathname();
-  const clearUser = useAuthStore((s) => s.clearUser);
+  const { user, clearUser } = useAuthStore();
+  const [menu, setMenu] = useState<MenuGroup[]>([]);
+  console.log("BackofficeSideNav user:", user);
 
   async function handleLogout() {
     clearUser();
     await signOut({ callbackUrl: "/signin" });
   }
 
+  useEffect(() => {
+    let contentMenu: MenuGroup[] = [];
+    if (user?.role === "admin") {
+      const generalGroup = NAV_GROUPS.find((g) => g.label === "Général");
+      const adminGroup = NAV_GROUPS.find((g) => g.label === "Administration");
+
+      if (generalGroup) {
+        contentMenu.push(generalGroup);
+      }
+      if (adminGroup) {
+        contentMenu.push(adminGroup);
+      }
+    } else {
+      const generalGroup = NAV_GROUPS.find((g) => g.label === "Général");
+      const portailGroup = NAV_GROUPS.find((g) => g.label === "Portail");
+
+      if (generalGroup) {
+        contentMenu.push({
+          ...generalGroup,
+          items: generalGroup.items.filter((item) =>
+            ["/dashboard", "/profil"].includes(item.href),
+          ),
+        });
+      }
+
+      if (portailGroup) {
+        contentMenu.push(portailGroup);
+      }
+    }
+    setMenu(contentMenu);
+  }, [user]);
+
+  if (menu.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-500">Chargement du menu...</p>
+      </div>
+    ); // ou un loader, ou un message d'erreur
+  }
+
   return (
     <>
       <div className="flex flex-col gap-4 mt-4 fixed pe-4">
-        {NAV_GROUPS.map((group) => (
+        {menu.map((group) => (
           <div key={group.label}>
             <p className="text-xs font-semibold uppercase tracking-widest text-dark/40 dark:text-white/30 px-4 mb-1">
               {group.label}
