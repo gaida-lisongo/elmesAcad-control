@@ -143,7 +143,13 @@ const Header: React.FC = () => {
           </button>
           {user || session?.user ? (
             <>
-              <div className="relative group flex items-center justify-center">
+              <div
+                className="relative group flex items-center justify-center cursor-pointer"
+                onClick={() => {
+                  // Redirection vers /dashboard
+                  window.location.href = "/dashboard";
+                }}
+              >
                 {photoUrl ? (
                   <Image
                     key={photoUrl}

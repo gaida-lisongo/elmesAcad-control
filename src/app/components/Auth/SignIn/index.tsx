@@ -6,9 +6,13 @@ import { signIn } from "next-auth/react";
 import Logo from "@/app/components/Layout/Header/Logo";
 import Loader from "@/app/components/Common/Loader";
 import { useAuthStore } from "@/store/authStore";
+import { Icon } from "@iconify/react";
+
+type AccountType = "admin" | "client";
 
 const Signin = () => {
   const router = useRouter();
+  const [accountType, setAccountType] = useState<AccountType>("client");
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [loginData, setLoginData] = useState({
@@ -44,13 +48,15 @@ const Signin = () => {
     setLoading(true);
     setAuthError("");
     try {
+      // Ajouter le type de compte aux credentials
       const result = await signIn("credentials", {
         redirect: false,
         email: loginData.email,
         password: loginData.password,
+        accountType, // Passer le type de compte
       });
       if (result?.error) {
-        setAuthError("Email ou mot de passe incorrect.");
+        setAuthError("Email ou mot de passe incorrect pour ce type de compte.");
       } else {
         // Load complete user data into store
         try {
@@ -85,6 +91,55 @@ const Signin = () => {
     <div>
       <div className="mb-10 text-center mx-auto inline-block">
         <Logo />
+      </div>
+
+      {/* Tabs pour choisir le type de compte */}
+      <div className="mb-8 flex gap-2">
+        {/* Tab Admin */}
+        <button
+          onClick={() => {
+            setAccountType("admin");
+            setAuthError("");
+          }}
+          className={`flex-1 py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
+            accountType === "admin"
+              ? "bg-primary text-white shadow-lg"
+              : "bg-grey dark:bg-darkmode text-black dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+          }`}
+        >
+          <Icon icon="mdi:shield-admin" width={20} />
+          Administrateur
+        </button>
+
+        {/* Tab Client */}
+        <button
+          onClick={() => {
+            setAccountType("client");
+            setAuthError("");
+          }}
+          className={`flex-1 py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
+            accountType === "client"
+              ? "bg-primary text-white shadow-lg"
+              : "bg-grey dark:bg-darkmode text-black dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+          }`}
+        >
+          <Icon icon="mdi:account" width={20} />
+          Client
+        </button>
+      </div>
+
+      {/* Info Box */}
+      <div className="mb-6 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+        <p className="text-sm text-blue-900 dark:text-blue-200 flex items-start gap-2">
+          <Icon
+            icon="mdi:information"
+            width={16}
+            className="mt-0.5 flex-shrink-0"
+          />
+          {accountType === "admin"
+            ? "Connectez-vous avec votre compte administrateur"
+            : "Connectez-vous avec les identifiants reçus lors de votre achat"}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit}>

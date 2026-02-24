@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import { Client, CommandePackage } from "@/utils/models";
 import { mailService } from "@/utils/mail/MailService";
 import { cloudinaryService } from "@/utils/storage/CloudinaryService";
+import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import mongoose from "mongoose";
 
@@ -14,8 +15,13 @@ function toPlainObject(obj: any) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function generatePassword(): string {
-  return crypto.randomBytes(12).toString("hex");
+// Générer un mot de passe lisible et court (8 caractères)
+function generatePassword(length = 8): string {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!";
+  return Array.from(
+    { length },
+    () => chars[Math.floor(Math.random() * chars.length)],
+  ).join("");
 }
 
 function generateUUID(): string {
@@ -26,9 +32,9 @@ function generateApiKey(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
-// Hachage simple (en production, utiliser bcrypt)
-function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex");
+// Hash avec bcrypt (compatible avec NextAuth)
+async function hashPassword(password: string): Promise<string> {
+  return await bcrypt.hash(password, 12);
 }
 
 const ClientCreationSchema = z.object({
@@ -99,7 +105,7 @@ export async function createClientProspect(data: {
     const uuid = generateUUID();
     const apiKey = generateApiKey();
     const apiSecret = generateApiKey();
-    const hashedPassword = hashPassword(password);
+    const hashedPassword = await hashPassword(password);
 
     // Créer le client
     const newClient = await Client.create({
