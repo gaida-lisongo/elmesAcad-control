@@ -8,7 +8,15 @@ import Loader from "@/app/components/Common/Loader";
 import {
   checkPaymentStatus,
   activateCommandeAfterPayment,
+  createNewCommande,
 } from "@/lib/actions/home/commande-actions";
+
+interface Package {
+  _id: string;
+  titre: string;
+  prix: number;
+  description?: string;
+}
 
 interface PaymentInfo {
   reference?: string;
@@ -57,6 +65,16 @@ export default function FacturesPage() {
     isOpen: false,
   });
 
+  // Create commande modal 3 steps
+  const [createModal, setCreateModal] = useState({
+    isOpen: false,
+    step: 1,
+    selectedPackage: null as Package | null,
+    phoneNumber: "",
+    isLoading: false,
+    packages: [] as Package[],
+  });
+
   // Récupérer les commandes
   useEffect(() => {
     const fetchCommandes = async () => {
@@ -88,6 +106,105 @@ export default function FacturesPage() {
       fetchCommandes();
     }
   }, [user?.id]);
+
+  // Charger les packages quand le modal s'ouvre
+  useEffect(() => {
+    if (createModal.isOpen && createModal.packages.length === 0) {
+      const fetchPackages = async () => {
+        try {
+          const response = await fetch("/api/data?type=packages");
+          const result = await response.json();
+          if (result.success) {
+            setCreateModal((prev) => ({
+              ...prev,
+              packages: result.data || [],
+            }));
+          }
+        } catch (error) {
+          console.error("Erreur fetch packages:", error);
+        }
+      };
+      fetchPackages();
+    }
+  }, [createModal.isOpen]);
+
+  // Étape 1: Sélectionner le package
+  const handleSelectPackage = (pkg: Package) => {
+    setCreateModal((prev) => ({
+      ...prev,
+      selectedPackage: pkg,
+      step: 2,
+    }));
+  };
+
+  // Étape 2: Renseigner le numéro et passer à l'étape 3
+  const handleNextStep = () => {
+    if (createModal.phoneNumber.trim()) {
+      setCreateModal((prev) => ({
+        ...prev,
+        step: 3,
+      }));
+    }
+  };
+
+  // Étape 3: Créer la commande
+  const handleCreateCommande = async () => {
+    if (!createModal.selectedPackage || !user?.id) return;
+
+    setCreateModal((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      const result = await createNewCommande(
+        user.id,
+        createModal.selectedPackage._id,
+        createModal.phoneNumber,
+        user.email,
+      );
+
+      if (result.success) {
+        // Ajouter la nouvelle commande au state
+        if (createModal.selectedPackage) {
+          setCommandes((prev) => [
+            ...prev,
+            {
+              _id: result.data?.commandeId,
+              orderNumber: result.data?.orderNumber,
+              amount: result.data?.amount,
+              status: "pending",
+              reference: "",
+              email: user.email,
+              phone: createModal.phoneNumber,
+              packageId: {
+                _id: createModal.selectedPackage!._id,
+                titre: createModal.selectedPackage!.titre,
+                prix: createModal.selectedPackage!.prix,
+              },
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          ]);
+        }
+
+        // Fermer le modal
+        setCreateModal({
+          isOpen: false,
+          step: 1,
+          selectedPackage: null,
+          phoneNumber: "",
+          isLoading: false,
+          packages: [],
+        });
+
+        alert("✅ Commande créée avec succès!");
+      } else {
+        alert("❌ " + (result.error || "Erreur lors de la création"));
+      }
+    } catch (err: any) {
+      alert("❌ " + (err.message || "Erreur serveur"));
+    } finally {
+      setCreateModal((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
 
   // Vérifier le statut du paiement
   const handleCheckPayment = async (commande: Commande) => {
@@ -227,13 +344,19 @@ export default function FacturesPage() {
               Historique complet de vos achats et factures
             </p>
           </div>
-          <Link
-            href="/pricing"
+          <button
+            onClick={() =>
+              setCreateModal((prev) => ({
+                ...prev,
+                isOpen: true,
+                step: 1,
+              }))
+            }
             className="flex items-center gap-2 px-4 py-3 rounded-lg bg-primary text-white hover:bg-orange-600 transition-colors font-semibold"
           >
             <Icon icon="solar:add-circle-linear" width={20} />
             Créer une commande
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -745,6 +868,184 @@ export default function FacturesPage() {
                     className="w-full px-4 py-3 rounded-lg bg-slate-300 hover:bg-slate-400 dark:bg-slate-700 dark:hover:bg-slate-600 text-black dark:text-white font-semibold transition-all duration-200"
                   >
                     Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Create Commande Modal - 3 Steps */}
+          {createModal.isOpen && (
+            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full">
+                {/* Header */}
+                <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-blue-500 to-primary dark:from-blue-600 dark:to-orange-600">
+                  <h2 className="text-2xl font-bold text-white flex items-center justify-between">
+                    <span>Créer une commande</span>
+                    <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
+                      Étape {createModal.step}/3
+                    </span>
+                  </h2>
+                </div>
+
+                {/* Body */}
+                <div className="p-8">
+                  {/* Étape 1: Sélectionner le package */}
+                  {createModal.step === 1 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-black dark:text-white mb-6">
+                        Choisissez votre package
+                      </h3>
+                      <div className="grid gap-4">
+                        {createModal.packages.map((pkg) => (
+                          <button
+                            key={pkg._id}
+                            onClick={() => handleSelectPackage(pkg)}
+                            className="p-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all text-left"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-bold text-black dark:text-white text-lg">
+                                  {pkg.titre}
+                                </h4>
+                                {pkg.description && (
+                                  <p className="text-sm text-black/60 dark:text-white/60 mt-1">
+                                    {pkg.description}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className="text-3xl font-bold text-primary">
+                                  ${pkg.prix}
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Étape 2: Renseigner le numéro */}
+                  {createModal.step === 2 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-black dark:text-white mb-6">
+                        Confirmer votre numéro
+                      </h3>
+                      <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                          <strong>Package sélectionné:</strong>{" "}
+                          {createModal.selectedPackage?.titre}
+                        </p>
+                        <p className="text-lg font-bold text-blue-700 dark:text-blue-300 mt-2">
+                          ${createModal.selectedPackage?.prix}
+                        </p>
+                      </div>
+
+                      <div className="mt-6">
+                        <label className="block text-sm font-semibold text-black dark:text-white mb-3">
+                          Numéro de téléphone
+                        </label>
+                        <input
+                          type="text"
+                          value={createModal.phoneNumber}
+                          onChange={(e) =>
+                            setCreateModal((prev) => ({
+                              ...prev,
+                              phoneNumber: e.target.value,
+                            }))
+                          }
+                          placeholder="+243 XXX XXXXXX"
+                          className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-black dark:text-white focus:outline-none focus:border-primary"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Étape 3: Confirmation */}
+                  {createModal.step === 3 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-black dark:text-white mb-6">
+                        Confirmer votre commande
+                      </h3>
+
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800">
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                            Package
+                          </p>
+                          <p className="font-bold text-black dark:text-white">
+                            {createModal.selectedPackage?.titre}
+                          </p>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800">
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                            Téléphone
+                          </p>
+                          <p className="font-bold text-black dark:text-white">
+                            {createModal.phoneNumber}
+                          </p>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                          <p className="text-sm text-green-700 dark:text-green-300 mb-1">
+                            Montant total
+                          </p>
+                          <p className="text-3xl font-bold text-green-700 dark:text-green-300">
+                            ${createModal.selectedPackage?.prix}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex gap-3">
+                  <button
+                    onClick={() => {
+                      if (createModal.step > 1) {
+                        setCreateModal((prev) => ({
+                          ...prev,
+                          step: prev.step - 1,
+                        }));
+                      } else {
+                        setCreateModal({
+                          isOpen: false,
+                          step: 1,
+                          selectedPackage: null,
+                          phoneNumber: "",
+                          isLoading: false,
+                          packages: [],
+                        });
+                      }
+                    }}
+                    disabled={createModal.isLoading}
+                    className="flex-1 px-4 py-3 rounded-lg bg-slate-300 hover:bg-slate-400 dark:bg-slate-700 dark:hover:bg-slate-600 text-black dark:text-white font-semibold transition-all disabled:opacity-50"
+                  >
+                    {createModal.step === 1 ? "Annuler" : "Retour"}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (createModal.step === 2) {
+                        handleNextStep();
+                      } else if (createModal.step === 3) {
+                        handleCreateCommande();
+                      }
+                    }}
+                    disabled={
+                      createModal.isLoading ||
+                      (createModal.step === 2 &&
+                        !createModal.phoneNumber.trim())
+                    }
+                    className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-primary to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {createModal.isLoading && (
+                      <span className="animate-spin">⟳</span>
+                    )}
+                    {createModal.step === 3 ? "Créer la commande" : "Suivant"}
                   </button>
                 </div>
               </div>

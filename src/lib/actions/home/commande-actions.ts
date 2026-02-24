@@ -87,6 +87,66 @@ export async function activateCommandeAfterPayment(
 }
 
 /**
+ * Crée une nouvelle commande avec dépôt FlexPay
+ * Étape 1: Sélectionner package
+ * Étape 2: Renseigner numéro
+ * Étape 3: Créer commande
+ */
+export async function createNewCommande(
+  userId: string,
+  packageId: string,
+  phoneNumber: string,
+  email: string,
+): Promise<{
+  success: boolean;
+  message?: string;
+  data?: any;
+  error?: string;
+}> {
+  try {
+    await connectDB();
+
+    // 1. Récupérer le package pour le prix
+    const Package = mongoose.model(
+      "Package",
+      new mongoose.Schema({ titre: String, prix: Number }),
+    );
+    const pkg = await Package.findById(packageId);
+    if (!pkg) {
+      return { success: false, error: "Package non trouvé" };
+    }
+
+    // 2. Créer la commande avec statut "pending"
+    const commande = await CommandePackage.create({
+      clientId: userId,
+      packageId,
+      amount: pkg.prix,
+      status: "pending",
+      email,
+      phone: phoneNumber,
+      reference: `CMD-${Date.now()}`,
+      orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    });
+
+    return {
+      success: true,
+      message: "Commande créée",
+      data: {
+        commandeId: commande._id,
+        orderNumber: commande.orderNumber,
+        amount: commande.amount,
+      },
+    };
+  } catch (error: any) {
+    console.error("❌ Erreur création commande:", error);
+    return {
+      success: false,
+      error: error.message || "Erreur lors de la création",
+    };
+  }
+}
+
+/**
  * Obtient les détails du paiement depuis FlexPay
  */
 export async function checkPaymentStatus(orderNumber: string): Promise<{
