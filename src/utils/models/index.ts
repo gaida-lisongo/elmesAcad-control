@@ -1,3 +1,4 @@
 import { Admin, Client } from "./User";
 import { Module, Hero, Package } from "./App";
-export { Admin, Client, Module, Hero, Package };
+import { CommandePackage } from "./Transaction";
+export { Admin, Client, Module, Hero, Package, CommandePackage };

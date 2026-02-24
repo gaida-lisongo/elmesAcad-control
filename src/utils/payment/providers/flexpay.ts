@@ -22,6 +22,7 @@ class FlexPayService extends ServicePay {
 
   constructor() {
     super();
+
     const required = [
       this.apiHost,
       this.apiOutHost,
@@ -33,6 +34,8 @@ class FlexPayService extends ServicePay {
       this.merchant,
       this.callbackUrl,
     ];
+
+    console.log("FlexPay config:", required);
     if (required.some((v) => !v)) throw new Error("FlexPay env vars missing");
   }
 

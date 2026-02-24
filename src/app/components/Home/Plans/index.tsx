@@ -25,7 +25,11 @@ interface Plan {
   modules?: string[];
 }
 
-const Plan = () => {
+interface PlanProps {
+  onSelectPackage?: (plan: Plan) => void;
+}
+
+const Plan = ({ onSelectPackage }: PlanProps) => {
   const [enabled, setEnabled] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -102,8 +106,12 @@ const Plan = () => {
   const plans = enabled ? yearlyPlans : MonthlyPlans;
 
   const openModal = (plan: Plan) => {
-    setSelectedPlan(plan);
-    setIsModalOpen(true);
+    if (onSelectPackage) {
+      onSelectPackage(plan);
+    } else {
+      setSelectedPlan(plan);
+      setIsModalOpen(true);
+    }
   };
 
   const closeModal = () => {
