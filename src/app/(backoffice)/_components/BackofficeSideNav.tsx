@@ -6,6 +6,7 @@ import { Icon } from "@iconify/react";
 import { signOut } from "next-auth/react";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
+import Loader from "@/app/components/Common/Loader";
 
 interface MenuItem {
   label: string;
@@ -108,8 +109,8 @@ export default function BackofficeSideNav() {
 
   if (menu.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500">Chargement du menu...</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader size={"lg"} text="Chargement de vos commandes..." />
       </div>
     ); // ou un loader, ou un message d'erreur
   }

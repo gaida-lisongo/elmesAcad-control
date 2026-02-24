@@ -1,5 +1,14 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
+export interface IAccount extends Document {
+  clientId: mongoose.Types.ObjectId;
+  packageId: mongoose.Types.ObjectId;
+  quotite: number;
+  solde: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ITransaction extends Document {
   amount: number;
   orderNumber: string;
@@ -35,6 +44,20 @@ const CommandePackageSchema: Schema<ICommandePackage> = new Schema(
   },
   { timestamps: true },
 );
+
+const AccountSchema: Schema<IAccount> = new Schema(
+  {
+    clientId: { type: Schema.Types.ObjectId, ref: "Client", required: true },
+    packageId: { type: Schema.Types.ObjectId, ref: "Package", required: true },
+    quotite: { type: Number, required: true },
+    solde: { type: Number, required: true },
+  },
+  { timestamps: true },
+);
+
+export const Account: Model<IAccount> =
+  (mongoose.models.Account as Model<IAccount>) ||
+  mongoose.model<IAccount>("Account", AccountSchema);
 
 export const CommandePackage: Model<ICommandePackage> =
   (mongoose.models.CommandePackage as Model<ICommandePackage>) ||

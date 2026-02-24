@@ -184,8 +184,8 @@ const Checkout = ({ packages, selectedPackage, onClose }: CheckoutProps) => {
           commandeData.password,
         );
 
-        // Mettre à jour la commande au statut "completed"
-        await updateCommandeStatus(commandeResult.data._id, "completed");
+        // Mettre à jour la commande au statut "pending"
+        await updateCommandeStatus(commandeResult.data._id, "pending");
 
         // Stockage des credentials pour affichage
         setCredentials({
