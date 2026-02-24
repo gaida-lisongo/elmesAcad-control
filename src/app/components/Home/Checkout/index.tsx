@@ -8,7 +8,7 @@ import {
   createCommandePackage,
   activateClientAfterPayment,
   updateCommandeStatus,
-  initiatePayment,
+  updateCommandeOrderNumber,
 } from "@/lib/actions/home/checkout-actions";
 
 interface CheckoutProps {
@@ -39,6 +39,14 @@ const Checkout = ({ packages, selectedPackage, onClose }: CheckoutProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Mémoire des credentials pour affichage
+  const [credentials, setCredentials] = useState<{
+    email: string;
+    password: string;
+    apiKey: string;
+    orderNumber?: string;
+  } | null>(null);
 
   // Étape 1: Information Client
   const [clientData, setClientData] = useState<ClientData>({
@@ -139,14 +147,37 @@ const Checkout = ({ packages, selectedPackage, onClose }: CheckoutProps) => {
         return;
       }
 
-      // Initier le paiement (côté serveur)
-      const paymentResult = await initiatePayment({
-        amount: commandeData.amount,
-        phone: paymentData.phone,
-        reference,
+      // Appeler l'endpoint /api/flexpay (client faire appel à l'API)
+      const paymentRes = await fetch("/api/flexpay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: commandeData.amount,
+          phone: paymentData.phone,
+          reference,
+          type: "MOBILE",
+        }),
       });
 
+      if (!paymentRes.ok) {
+        throw new Error(`Erreur API: ${paymentRes.status}`);
+      }
+
+      const paymentResult = await paymentRes.json();
+
+      console.log("✅ Payment API Response:", paymentResult);
+
       if (paymentResult.success) {
+        const flexPayOrderNumber = paymentResult.data?.orderNumber;
+
+        // Mettre à jour l'orderNumber avec celui de FlexPay
+        if (flexPayOrderNumber) {
+          await updateCommandeOrderNumber(
+            commandeResult.data._id,
+            flexPayOrderNumber,
+          );
+        }
+
         // Activer le client
         await activateClientAfterPayment(
           commandeData.userId,
@@ -156,16 +187,29 @@ const Checkout = ({ packages, selectedPackage, onClose }: CheckoutProps) => {
         // Mettre à jour la commande au statut "completed"
         await updateCommandeStatus(commandeResult.data._id, "completed");
 
+        // Stockage des credentials pour affichage
+        setCredentials({
+          email: commandeData.email,
+          password: commandeData.password,
+          apiKey: commandeData.password, // À adapter selon votre logique
+          orderNumber: flexPayOrderNumber,
+        });
+
         setSuccessMessage(
-          "Félicitations! Votre commande a été confirmée. Un email de confirmation a été envoyé.",
+          "Félicitations! Votre paiement a été traité avec succès. Un email de confirmation avec vos identifiants a été envoyé.",
         );
         setStep("success");
       } else {
-        setError(paymentResult.message || "Erreur lors du paiement.");
+        setError(
+          paymentResult.message ||
+            paymentResult.error ||
+            "Erreur lors du paiement.",
+        );
         await updateCommandeStatus(commandeResult.data._id, "failed");
         setStep("error");
       }
     } catch (err: any) {
+      console.error("❌ Erreur paiement:", err);
       setError(err.message || "Erreur lors du paiement.");
       setStep("error");
     } finally {
@@ -478,7 +522,7 @@ const Checkout = ({ packages, selectedPackage, onClose }: CheckoutProps) => {
   if (step === "success") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-        <div className="w-full max-w-md rounded-2xl bg-white dark:bg-darklight p-6 shadow-xl text-center">
+        <div className="w-full max-w-2xl rounded-2xl bg-white dark:bg-darklight p-8 shadow-xl max-h-[90vh] overflow-y-auto">
           {/* Success Icon */}
           <div className="mb-6 flex justify-center">
             <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -491,14 +535,132 @@ const Checkout = ({ packages, selectedPackage, onClose }: CheckoutProps) => {
           </div>
 
           {/* Title */}
-          <h3 className="text-2xl font-semibold text-black dark:text-white mb-2">
+          <h3 className="text-2xl font-semibold text-black dark:text-white mb-2 text-center">
             Félicitations!
           </h3>
 
           {/* Message */}
-          <p className="text-black/60 dark:text-white/60 mb-6">
+          <p className="text-black/60 dark:text-white/60 mb-8 text-center">
             {successMessage}
           </p>
+
+          {/* Credentials Card */}
+          {credentials && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Icon
+                  icon="mdi:shield-account"
+                  width={20}
+                  className="text-blue-600 dark:text-blue-400"
+                />
+                <h4 className="font-semibold text-blue-900 dark:text-blue-200">
+                  Vos identifiants de connexion
+                </h4>
+              </div>
+
+              <div className="space-y-4">
+                {/* Email */}
+                <div>
+                  <label className="block text-sm text-blue-800 dark:text-blue-300 font-medium mb-1">
+                    Email:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-white dark:bg-darkmode px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 font-mono text-sm text-black dark:text-white">
+                      {credentials.email}
+                    </div>
+                    <button
+                      onClick={() =>
+                        navigator.clipboard.writeText(credentials.email)
+                      }
+                      className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm"
+                    >
+                      <Icon icon="mdi:content-copy" width={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-sm text-blue-800 dark:text-blue-300 font-medium mb-1">
+                    Mot de passe:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-white dark:bg-darkmode px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 font-mono text-sm text-black dark:text-white">
+                      {credentials.password}
+                    </div>
+                    <button
+                      onClick={() =>
+                        navigator.clipboard.writeText(credentials.password)
+                      }
+                      className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm"
+                    >
+                      <Icon icon="mdi:content-copy" width={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* API Key */}
+                {credentials.apiKey && (
+                  <div>
+                    <label className="block text-sm text-blue-800 dark:text-blue-300 font-medium mb-1">
+                      Clé API:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-white dark:bg-darkmode px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 font-mono text-xs text-black dark:text-white truncate">
+                        {credentials.apiKey}
+                      </div>
+                      <button
+                        onClick={() =>
+                          navigator.clipboard.writeText(
+                            credentials.apiKey || "",
+                          )
+                        }
+                        className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm"
+                      >
+                        <Icon icon="mdi:content-copy" width={18} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Order Number */}
+                {credentials.orderNumber && (
+                  <div>
+                    <label className="block text-sm text-blue-800 dark:text-blue-300 font-medium mb-1">
+                      N° de commande FlexPay:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-white dark:bg-darkmode px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 font-mono text-sm text-black dark:text-white">
+                        {credentials.orderNumber}
+                      </div>
+                      <button
+                        onClick={() =>
+                          navigator.clipboard.writeText(
+                            credentials.orderNumber || "",
+                          )
+                        }
+                        className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm"
+                      >
+                        <Icon icon="mdi:content-copy" width={18} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900/40 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-xs text-blue-800 dark:text-blue-300">
+                  <Icon
+                    icon="mdi:information"
+                    className="inline mr-1"
+                    width={14}
+                  />
+                  Ces identifiants ont également été envoyés à votre adresse
+                  email. Conservez-les en sécurité.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Action */}
           <button

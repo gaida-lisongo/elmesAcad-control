@@ -260,7 +260,7 @@ export async function updateCommandeStatus(
     const commande = await CommandePackage.findByIdAndUpdate(
       commandeId,
       { status },
-      { new: true },
+      { returnDocument: "after" },
     ).lean();
 
     if (!commande) {
@@ -283,49 +283,52 @@ export async function updateCommandeStatus(
   }
 }
 
-// ─── PAYMENT: Initiate FlexPay Deposit (Server-side only) ───────────────────
-export async function initiatePayment(args: {
-  amount: number;
-  phone: string;
-  reference: string;
-}): Promise<{
+// ─── UPDATE: Update Commande with FlexPay OrderNumber ─────────────────────
+export async function updateCommandeOrderNumber(
+  commandeId: string,
+  flexPayOrderNumber: string,
+): Promise<{
   success: boolean;
-  message?: string;
   data?: any;
   error?: string;
 }> {
   try {
-    const { getPaymentProvider } = await import("@/utils/payment/factory");
-
-    console.log("🔐 Initializing FlexPay (SERVER-SIDE)...");
-    const flexPay = getPaymentProvider("flexpay");
-
-    const result = await flexPay.deposit({
-      amount: args.amount,
-      currency: "USD",
-      phone: args.phone,
-      reference: args.reference,
-    });
-
-    if (result.success) {
-      console.log("✅ FlexPay deposit initiated:", result.data);
-      return {
-        success: true,
-        message: result.message,
-        data: result.data,
-      };
-    } else {
-      console.error("❌ FlexPay deposit failed:", result.message);
+    if (!mongoose.Types.ObjectId.isValid(commandeId)) {
       return {
         success: false,
-        message: result.message,
+        error: "Commande ID invalide.",
       };
     }
+
+    await connectDB();
+
+    const commande = await CommandePackage.findByIdAndUpdate(
+      commandeId,
+      {
+        orderNumber: flexPayOrderNumber,
+        reference: `MOBILE_${Date.now()}`,
+      },
+      { returnDocument: "after" },
+    ).lean();
+
+    if (!commande) {
+      return {
+        success: false,
+        error: "Commande introuvable.",
+      };
+    }
+
+    console.log("✅ Commande mise à jour avec orderNumber FlexPay:", flexPayOrderNumber);
+
+    return {
+      success: true,
+      data: toPlainObject(commande),
+    };
   } catch (error: any) {
-    console.error("❌ Erreur paiement:", error.message);
+    console.error("Erreur mise à jour orderNumber:", error);
     return {
       success: false,
-      error: error.message || "Erreur lors de l'initiation du paiement.",
+      error: error.message || "Erreur lors de la mise à jour.",
     };
   }
 }
