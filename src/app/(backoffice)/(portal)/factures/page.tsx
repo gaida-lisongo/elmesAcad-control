@@ -8,8 +8,9 @@ import Loader from "@/app/components/Common/Loader";
 import {
   checkPaymentStatus,
   activateCommandeAfterPayment,
-  createNewCommande,
+  createCommandeAfterPayment,
 } from "@/lib/actions/home/commande-actions";
+import { getPackages } from "@/lib/actions/home/package-actions";
 
 interface Package {
   _id: string;
@@ -112,8 +113,7 @@ export default function FacturesPage() {
     if (createModal.isOpen && createModal.packages.length === 0) {
       const fetchPackages = async () => {
         try {
-          const response = await fetch("/api/data?type=packages");
-          const result = await response.json();
+          const result = await getPackages();
           if (result.success) {
             setCreateModal((prev) => ({
               ...prev,
@@ -147,18 +147,51 @@ export default function FacturesPage() {
     }
   };
 
-  // Étape 3: Créer la commande
+  // Étape 3: Créer la commande (après paiement FlexPay)
   const handleCreateCommande = async () => {
     if (!createModal.selectedPackage || !user?.id) return;
 
     setCreateModal((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      const result = await createNewCommande(
+      // Générer une référence unique
+      const reference = `CMD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // 1. Faire le dépôt FlexPay
+      const depositResponse = await fetch("/api/flexpay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          method: "deposit",
+          phone: createModal.phoneNumber,
+          amount: createModal.selectedPackage.prix,
+          reference,
+        }),
+      });
+
+      if (!depositResponse.ok) {
+        throw new Error("Erreur lors du paiement");
+      }
+
+      const depositData = await depositResponse.json();
+
+      if (!depositData.success) {
+        throw new Error(depositData.message || "Paiement échoué");
+      }
+
+      const orderNumber = depositData.data?.orderNumber;
+
+      if (!orderNumber) {
+        throw new Error("Pas d'orderNumber reçu");
+      }
+
+      // 2. Créer la commande avec l'orderNumber
+      const result = await createCommandeAfterPayment(
         user.id,
         createModal.selectedPackage._id,
         createModal.phoneNumber,
         user.email,
+        orderNumber,
       );
 
       if (result.success) {
@@ -171,7 +204,7 @@ export default function FacturesPage() {
               orderNumber: result.data?.orderNumber,
               amount: result.data?.amount,
               status: "pending",
-              reference: "",
+              reference: orderNumber,
               email: user.email,
               phone: createModal.phoneNumber,
               packageId: {
@@ -195,7 +228,7 @@ export default function FacturesPage() {
           packages: [],
         });
 
-        alert("✅ Commande créée avec succès!");
+        alert("✅ Commande créée et paiement initié!");
       } else {
         alert("❌ " + (result.error || "Erreur lors de la création"));
       }

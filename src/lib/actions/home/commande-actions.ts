@@ -1,7 +1,7 @@
 "use server";
 
 import { connectDB } from "@/lib/db";
-import { CommandePackage, Account, Client } from "@/utils/models";
+import { CommandePackage, Account, Client, Package } from "@/utils/models";
 import mongoose from "mongoose";
 
 /**
@@ -87,16 +87,14 @@ export async function activateCommandeAfterPayment(
 }
 
 /**
- * Crée une nouvelle commande avec dépôt FlexPay
- * Étape 1: Sélectionner package
- * Étape 2: Renseigner numéro
- * Étape 3: Créer commande
+ * Crée une nouvelle commande après payment FlexPay
  */
-export async function createNewCommande(
+export async function createCommandeAfterPayment(
   userId: string,
   packageId: string,
   phoneNumber: string,
   email: string,
+  orderNumber: string,
 ): Promise<{
   success: boolean;
   message?: string;
@@ -106,31 +104,28 @@ export async function createNewCommande(
   try {
     await connectDB();
 
-    // 1. Récupérer le package pour le prix
-    const Package = mongoose.model(
-      "Package",
-      new mongoose.Schema({ titre: String, prix: Number }),
-    );
+    // Récupérer le package pour les infos
     const pkg = await Package.findById(packageId);
     if (!pkg) {
       return { success: false, error: "Package non trouvé" };
     }
 
-    // 2. Créer la commande avec statut "pending"
+    // Créer la commande avec l'orderNumber reçu de FlexPay
     const commande = await CommandePackage.create({
-      clientId: userId,
+      userId,
       packageId,
       amount: pkg.prix,
       status: "pending",
       email,
       phone: phoneNumber,
-      reference: `CMD-${Date.now()}`,
-      orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      reference: orderNumber,
+      orderNumber,
+      description: pkg.titre || "Commande Package",
     });
 
     return {
       success: true,
-      message: "Commande créée",
+      message: "Commande créée avec succès",
       data: {
         commandeId: commande._id,
         orderNumber: commande.orderNumber,
