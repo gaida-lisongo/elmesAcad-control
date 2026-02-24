@@ -42,10 +42,10 @@ export default function HomeContent() {
       <Services />
       <Features />
       <Plan onSelectPackage={handleSelectPackage} />
-      <ProductDoc />
+      {/* <ProductDoc />
       <FAQ />
       <Info />
-      <Partners />
+      <Partners /> */}
 
       {/* Checkout Modal */}
       {isCheckoutOpen && selectedPackage && (
