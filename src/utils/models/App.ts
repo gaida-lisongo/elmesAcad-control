@@ -14,6 +14,7 @@ export interface IModule extends Document {
   imageUrl?: string;
   description: string;
   probleme: string;
+  objectifs?: string;
   slug?: string;
   features: string[];
   createdAt: Date;
@@ -34,6 +35,7 @@ const ModuleSchema: Schema<IModule> = new Schema(
     nom: { type: String, required: true },
     description: { type: String, required: true },
     probleme: { type: String, required: true },
+    objectifs: { type: String, required: false },
     features: { type: [String], default: [] },
     icon: { type: Schema.Types.Mixed, required: false },
     imageUrl: { type: String, required: false },

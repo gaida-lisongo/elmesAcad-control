@@ -30,6 +30,7 @@ const ModuleSchema = z.object({
   probleme: z
     .string()
     .min(10, "Le détail doit contenir au moins 10 caractères."),
+  objectifs: z.string().optional(),
   imageUrl: z.string().optional(),
   features: z.array(z.string()).optional(),
   slug: z.string().optional(),
@@ -57,6 +58,7 @@ export async function createModule(data: {
   nom: string;
   description: string;
   probleme: string;
+  objectifs?: string;
   imageFile?: File | null;
   imageUrl?: string;
   features?: string[];
@@ -76,6 +78,7 @@ export async function createModule(data: {
       nom: data.nom,
       description: data.description,
       probleme: data.probleme,
+      objectifs: data.objectifs,
       imageUrl: data.imageUrl,
       features: data.features,
       slug: data.slug,
@@ -117,6 +120,7 @@ export async function createModule(data: {
       nom: data.nom,
       description: data.description,
       probleme: data.probleme,
+      objectifs: data.objectifs,
       imageUrl,
       features: data.features || [],
       slug,
@@ -138,6 +142,7 @@ export async function updateModule(
     nom?: string;
     description?: string;
     probleme?: string;
+    objectifs?: string;
     imageFile?: File | null;
     imageUrl?: string;
     features?: string[];
@@ -164,6 +169,7 @@ export async function updateModule(
     if (data.nom) module.nom = data.nom;
     if (data.description) module.description = data.description;
     if (data.probleme) module.probleme = data.probleme;
+    if (data.objectifs !== undefined) module.objectifs = data.objectifs;
     if (data.imageUrl !== undefined) module.imageUrl = data.imageUrl;
     if (data.features) module.features = data.features;
     if (data.slug) module.slug = slugify(data.slug);

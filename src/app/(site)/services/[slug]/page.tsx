@@ -7,12 +7,15 @@ type Props = {
 
 export async function generateMetadata({ params }: any) {
   try {
+    const awaitedParams = await params;
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/service`, {
       cache: "no-store",
     });
     const data = await res.json();
 
-    const service = data.ServicesData.find((item: any) => item.slug === params.slug);
+    const service = data.ServicesData.find(
+      (item: any) => item.slug === awaitedParams.slug,
+    );
 
     if (!service) {
       return {
@@ -46,10 +49,7 @@ export async function generateMetadata({ params }: any) {
 }
 
 const Page = () => {
-
-  return (
-    <ServiceDetail />
-  );
+  return <ServiceDetail />;
 };
 
 export default Page;

@@ -23,6 +23,7 @@ export const GET = async () => {
       image: mod.imageUrl || "/images/ServiceDetail/EdTechAppImage.png",
       description: mod.description,
       detail: mod.probleme || mod.description,
+      objectifs: mod.objectifs || "",
       features: (mod.features || []).map((item: string) => ({
         title: item,
         description: "",
