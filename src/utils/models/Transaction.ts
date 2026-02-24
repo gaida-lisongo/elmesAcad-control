@@ -9,6 +9,21 @@ export interface IAccount extends Document {
   updatedAt: Date;
 }
 
+export interface ICommandeProduct extends Document {
+  category: string;
+  student: string;
+  classe: string;
+  amount: number;
+  orderNumber: string;
+  phone: string;
+  status: "pending" | "completed" | "failed";
+  reference: string;
+  description: string;
+  createdAt: Date;
+  updatedAt: Date;
+  clientId: mongoose.Types.ObjectId;
+}
+
 export interface ITransaction extends Document {
   amount: number;
   orderNumber: string;
@@ -25,6 +40,26 @@ export interface ICommandePackage extends ITransaction {
   packageId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
 }
+
+const CommandeProductSchema: Schema<ICommandeProduct> = new Schema(
+  {
+    category: { type: String, required: true },
+    student: { type: String, required: true },
+    classe: { type: String, required: true },
+    amount: { type: Number, required: true },
+    orderNumber: { type: String, required: true, unique: true },
+    phone: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ["pending", "completed", "failed"],
+      default: "pending",
+    },
+    reference: { type: String, required: true },
+    description: { type: String, required: true },
+    clientId: { type: Schema.Types.ObjectId, ref: "Client", required: true },
+  },
+  { timestamps: true },
+);
 
 const CommandePackageSchema: Schema<ICommandePackage> = new Schema(
   {
@@ -54,6 +89,10 @@ const AccountSchema: Schema<IAccount> = new Schema(
   },
   { timestamps: true },
 );
+
+export const CommandeProduct: Model<ICommandeProduct> =
+  (mongoose.models.CommandeProduct as Model<ICommandeProduct>) ||
+  mongoose.model<ICommandeProduct>("CommandeProduct", CommandeProductSchema);
 
 export const Account: Model<IAccount> =
   (mongoose.models.Account as Model<IAccount>) ||

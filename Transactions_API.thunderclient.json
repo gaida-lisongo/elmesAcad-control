@@ -1,0 +1,258 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "SaasCandy - Transactions API",
+  "dateExport": "2024-02-25T10:30:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Transactions API",
+      "requests": [
+        {
+          "name": "1. Créer une commande (Livres)",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/transactions",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-api-key",
+              "value": "{{apiKey}}"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "{{apiSecret}}"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"category\": \"Livres\",\n  \"student\": \"Jean Dupont\",\n  \"classe\": \"6A\",\n  \"amount\": 45.50,\n  \"phone\": \"+243123456789\",\n  \"reference\": \"REF-12345\",\n  \"description\": \"Manuel de français - 6A\"\n}"
+          }
+        },
+        {
+          "name": "2. Créer une commande (Uniformes)",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/transactions",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-api-key",
+              "value": "{{apiKey}}"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "{{apiSecret}}"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"category\": \"Uniformes\",\n  \"student\": \"Marie Martin\",\n  \"classe\": \"5B\",\n  \"amount\": 65.00,\n  \"phone\": \"+243987654321\",\n  \"reference\": \"REF-12346\",\n  \"description\": \"Uniforme complet - 5B\"\n}"
+          }
+        },
+        {
+          "name": "3. Créer une commande (Fournitures)",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/transactions",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-api-key",
+              "value": "{{apiKey}}"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "{{apiSecret}}"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"category\": \"Fournitures\",\n  \"student\": \"Pierre Ahmad\",\n  \"classe\": \"4A\",\n  \"amount\": 25.50,\n  \"phone\": \"+243555555555\",\n  \"reference\": \"REF-12347\",\n  \"description\": \"Cahiers, stylos et crayons\"\n}"
+          }
+        },
+        {
+          "name": "4. Récupérer TOUTES les commandes",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/transactions",
+          "headers": [
+            {
+              "key": "x-api-key",
+              "value": "{{apiKey}}"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "{{apiSecret}}"
+            }
+          ]
+        },
+        {
+          "name": "5. Récupérer les commandes - Status: pending",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/transactions?status=pending",
+          "headers": [
+            {
+              "key": "x-api-key",
+              "value": "{{apiKey}}"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "{{apiSecret}}"
+            }
+          ]
+        },
+        {
+          "name": "6. Récupérer les commandes - Catégorie: Livres",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/transactions?category=Livres",
+          "headers": [
+            {
+              "key": "x-api-key",
+              "value": "{{apiKey}}"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "{{apiSecret}}"
+            }
+          ]
+        },
+        {
+          "name": "7. Mettre à jour: pending → completed",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/transactions",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-api-key",
+              "value": "{{apiKey}}"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "{{apiSecret}}"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"orderNumber\": \"CHANGE_ME_WITH_REAL_ORDER_NUMBER\",\n  \"status\": \"completed\",\n  \"reference\": \"PAID-TXN-67890\"\n}"
+          }
+        },
+        {
+          "name": "8. Mettre à jour: pending → failed",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/transactions",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-api-key",
+              "value": "{{apiKey}}"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "{{apiSecret}}"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"orderNumber\": \"CHANGE_ME_WITH_REAL_ORDER_NUMBER\",\n  \"status\": \"failed\",\n  \"reference\": \"FAILED-TXN-99999\"\n}"
+          }
+        },
+        {
+          "name": "[CLIENT] Récupérer ses commandes",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/transactions/client",
+          "headers": [],
+          "note": "Utilisé depuis le dashboard client authentifié (NextAuth session)"
+        },
+        {
+          "name": "❌ TEST: Sans credentials",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/transactions",
+          "headers": [],
+          "note": "Doit retourner 401"
+        },
+        {
+          "name": "❌ TEST: Credentials invalides",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/transactions",
+          "headers": [
+            {
+              "key": "x-api-key",
+              "value": "invalid_key_12345"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "invalid_secret_abcde"
+            }
+          ],
+          "note": "Doit retourner 403"
+        },
+        {
+          "name": "❌ TEST: Champs requis manquants",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/transactions",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-api-key",
+              "value": "{{apiKey}}"
+            },
+            {
+              "key": "x-api-secret",
+              "value": "{{apiSecret}}"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"category\": \"Livres\"\n}"
+          },
+          "note": "Doit retourner 400 - Champs manquants"
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "name": "apiKey",
+      "value": "your_api_key_here"
+    },
+    {
+      "name": "apiSecret",
+      "value": "your_api_secret_here"
+    }
+  ],
+  "instructions": {
+    "setup": [
+      "1. Remplacez {{baseUrl}} par votre URL (http://localhost:3000 for development)",
+      "2. Allez dans le dashboard client et trouvez votre API Key",
+      "3. Remplacez {{apiKey}} avec votre clé",
+      "4. Remplacez {{apiSecret}} avec votre secret",
+      "5. Pour les requêtes PUT, utilisez l'orderNumber de la première création"
+    ],
+    "workflow": [
+      "Étape 1-3: Créez 3 commandes de test avec différentes catégories",
+      "Étape 4: Récupérez TOUTES les commandes (gardez un orderNumber pour la suite)",
+      "Étape 5-6: Testez les filtres (status et category)",
+      "Étape 7-8: Mettez à jour les statuts des commandes avec les orderNumbers obtenus",
+      "Étape 9: Testez le endpoint client authentifié",
+      "Étape 10-12: Testez les scénarios d'erreur"
+    ]
+  }
+}
