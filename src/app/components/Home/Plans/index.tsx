@@ -71,7 +71,7 @@ const Plan = () => {
           type: pkg.titre,
           price: pkg.prix,
           text: pkg.description,
-          benefits: pkg.benefices || [],
+          benefits: pkg.modules?.map((m: any) => m.nom) || [],
           avantages: pkg.avantages || [],
           features: pkg.features || [],
           packageHeritage: pkg.packageHeritage?._id || null,
