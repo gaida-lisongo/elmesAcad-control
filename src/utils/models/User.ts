@@ -14,6 +14,7 @@ export interface IUser extends Document {
 
 export interface IAdmin extends IUser {
   role: "admin";
+  quotite: Number;
 }
 
 export interface IClient extends IUser {
@@ -35,6 +36,7 @@ const AdminSchema: Schema<IAdmin> = new Schema(
     autorisations: { type: [String], default: [] },
     resetToken: { type: String },
     resetTokenExpiry: { type: Date },
+    quotite: { type: Number },
   },
   { timestamps: true },
 );

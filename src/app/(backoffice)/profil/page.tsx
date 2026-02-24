@@ -1,24 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import Image from "next/image";
 import { Icon } from "@iconify/react";
 import toast, { Toaster } from "react-hot-toast";
+import { useAuthStore } from "@/store/authStore";
+import { updateProfile, updateAvatar, changePassword } from "./actions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface MockUser {
-  name: string;
+interface UserProfile {
+  nomComplet: string;
   email: string;
-  role: "ADMIN" | "TENANT";
-  avatarInitials: string;
+  role: string;
+  photoUrl?: string;
 }
 
-// ─── Mock — TODO: replace with useSession() / API call → GET /api/me ─────────
-const MOCK_USER: MockUser = {
-  name: "Alice Martin",
-  email: "alice@example.com",
-  role: "ADMIN",
-  avatarInitials: "AM",
-};
+type Tab = "INFORMATIONS" | "SECURITE";
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({
@@ -45,18 +42,34 @@ function Section({
   );
 }
 
+// ─── Input class helper ───────────────────────────────────────────────────────
+const inputCls = (hasError?: boolean) =>
+  hasError
+    ? "p-3 border border-red-400 focus:border-red-500 rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
+    : "p-3 border border-gray-200 focus:border-primary dark:border-darkborder dark:focus:border-primary rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]";
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ProfilePage() {
-  // TODO: replace mock with session data → const { data: session } = useSession();
+  const { updateUser, user } = useAuthStore();
+
+  const [tab, setTab] = useState<Tab>("INFORMATIONS");
+
+  // Profile form state
   const [form, setForm] = useState({
-    name: MOCK_USER.name,
-    email: MOCK_USER.email,
+    nomComplet: user?.nomComplet ?? "",
+    email: user?.email ?? "",
   });
   const [formErrors, setFormErrors] = useState<{
-    name?: string;
+    nomComplet?: string;
     email?: string;
   }>({});
+  const [savingProfile, setSavingProfile] = useState(false);
 
+  // Avatar state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // Password form state
   const [pwForm, setPwForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -67,23 +80,78 @@ export default function ProfilePage() {
     newPassword?: string;
     confirmPassword?: string;
   }>({});
+  const [savingPw, setSavingPw] = useState(false);
+
+  // ── Avatar upload ───────────────────────────────────────────────────────
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    setUploadingAvatar(true);
+    try {
+      const result = await updateAvatar(formData);
+      console.log("updateAvatar result:", result);
+      if (!result.success) {
+        throw new Error(result.error ?? "Erreur upload.");
+      }
+      if (result.user) {
+        // ✅ Sync complete user to Zustand store
+        updateUser(result.user);
+      }
+      toast.success("Photo mise à jour.");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   // ── Profile save ─────────────────────────────────────────────────────────
   function validateProfile(): boolean {
     const errs: typeof formErrors = {};
-    if (!form.name.trim()) errs.name = "Le nom est requis.";
-    if (!form.email.trim()) errs.email = "L'email est requis.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    const nomTrimmed = form.nomComplet.trim();
+    const emailTrimmed = form.email.trim();
+
+    if (nomTrimmed && nomTrimmed.length < 2)
+      errs.nomComplet = "Minimum 2 caractères.";
+    if (emailTrimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed))
       errs.email = "Format email invalide.";
+    // Check if at least one field is filled
+    if (!nomTrimmed && !emailTrimmed) {
+      toast.error("Au moins un champ à mettre à jour.");
+      return false;
+    }
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
-  function handleProfileSave(e: React.FormEvent) {
+  async function handleProfileSave(e: React.FormEvent) {
     e.preventDefault();
     if (!validateProfile()) return;
-    // TODO: API call → PATCH /api/me  { name, email }
-    toast.success("Profil mis à jour.");
+    setSavingProfile(true);
+    try {
+      const nomTrimmed = form.nomComplet.trim();
+      const emailTrimmed = form.email.trim();
+
+      const result = await updateProfile({
+        nomComplet: nomTrimmed || undefined,
+        email: emailTrimmed || undefined,
+      });
+      if (!result.success) {
+        throw new Error(result.error ?? "Erreur de mise à jour.");
+      }
+      if (result.user) {
+        // ✅ Sync complete user object to Zustand store (preserves all fields)
+        updateUser(result.user);
+      }
+      toast.success("Profil mis à jour.");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setSavingProfile(false);
+    }
   }
 
   // ── Password save ────────────────────────────────────────────────────────
@@ -100,16 +168,44 @@ export default function ProfilePage() {
     return Object.keys(errs).length === 0;
   }
 
-  function handlePasswordSave(e: React.FormEvent) {
+  async function handlePasswordSave(e: React.FormEvent) {
     e.preventDefault();
     if (!validatePassword()) return;
-    // TODO: API call → POST /api/me/change-password  { currentPassword, newPassword }
-    toast.success("Mot de passe modifié.");
-    setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    setPwErrors({});
+    setSavingPw(true);
+    try {
+      const result = await changePassword({
+        currentPassword: pwForm.currentPassword,
+        newPassword: pwForm.newPassword,
+      });
+      if (!result.success) {
+        throw new Error(result.error ?? "Erreur de mise à jour.");
+      }
+      toast.success("Mot de passe modifié.");
+      setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPwErrors({});
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setSavingPw(false);
+    }
   }
 
-  // ── Logout moved to BackofficeSideNav
+  // ── Derived display values ───────────────────────────────────────────────
+  const displayName = user?.nomComplet ?? "";
+  const displayEmail = user?.email ?? "";
+  const displayRole = user?.role ?? "";
+  const photoUrl = user?.photoUrl;
+  const initials = displayName
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const tabBtnCls = (t: Tab) =>
+    tab === t
+      ? "px-5 py-2.5 text-sm font-semibold text-primary border-b-2 border-primary"
+      : "px-5 py-2.5 text-sm font-medium text-dark/50 dark:text-white/50 hover:text-midnight_text dark:hover:text-white border-b-2 border-transparent duration-200";
 
   return (
     <>
@@ -117,192 +213,257 @@ export default function ProfilePage() {
 
       {/* Identity hero card */}
       <div className="bg-white dark:bg-darklight rounded-3xl border-b-2 border-gray-200 dark:border-darkborder shadow-card-shadow px-8 py-6 mb-8 flex items-center gap-5">
-        <div className="w-16 h-16 rounded-2xl bg-primary text-white text-xl font-bold flex items-center justify-center flex-shrink-0">
-          {MOCK_USER.avatarInitials}
+        {/* Avatar */}
+        <div className="relative flex-shrink-0">
+          {photoUrl ? (
+            <div className="w-16 h-16 rounded-2xl overflow-hidden">
+              <Image
+                key={photoUrl}
+                src={photoUrl}
+                alt={displayName}
+                width={64}
+                height={64}
+                className="object-cover w-full h-full"
+              />
+            </div>
+          ) : (
+            <div className="w-16 h-16 rounded-2xl bg-primary text-white text-xl font-bold flex items-center justify-center">
+              {initials || "?"}
+            </div>
+          )}
+          {/* Upload overlay */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center shadow hover:bg-orange-600 duration-200 disabled:opacity-60"
+            title="Changer la photo"
+          >
+            {uploadingAvatar ? (
+              <Icon
+                icon="heroicons:arrow-path-20-solid"
+                className="w-3.5 h-3.5 animate-spin"
+              />
+            ) : (
+              <Icon icon="heroicons:camera-20-solid" className="w-3.5 h-3.5" />
+            )}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
         </div>
+
         <div>
           <h2 className="text-midnight_text dark:text-white leading-tight">
-            {MOCK_USER.name}
+            {displayName}
           </h2>
           <p className="text-base text-dark/50 dark:text-white/50 mt-0.5">
-            {MOCK_USER.email}
+            {displayEmail}
           </p>
-          <span className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-            {MOCK_USER.role}
-          </span>
+          {displayRole && (
+            <span className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
+              {displayRole}
+            </span>
+          )}
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200 dark:border-darkborder mb-6">
+        <button
+          className={tabBtnCls("INFORMATIONS")}
+          onClick={() => setTab("INFORMATIONS")}
+        >
+          INFORMATIONS PERSONNELLES
+        </button>
+        <button
+          className={tabBtnCls("SECURITE")}
+          onClick={() => setTab("SECURITE")}
+        >
+          SÉCURITÉ
+        </button>
+      </div>
+
       <div className="space-y-6 max-w-2xl">
-        {/* ── Profile info ────────────────────────────────────── */}
-        <Section
-          title="Informations du compte"
-          description="Modifiez votre nom et votre adresse email."
-        >
-          <form onSubmit={handleProfileSave} className="space-y-5">
-            {/* Name */}
-            <div>
-              <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
-                Nom complet
-              </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className={
-                  formErrors.name
-                    ? "p-3 border border-red-400 focus:border-red-500 rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                    : "p-3 border border-gray-200 focus:border-primary dark:border-darkborder dark:focus:border-primary rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                }
-              />
-              {formErrors.name && (
-                <p className="text-sm text-red-500 mt-1">{formErrors.name}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className={
-                  formErrors.email
-                    ? "p-3 border border-red-400 focus:border-red-500 rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                    : "p-3 border border-gray-200 focus:border-primary dark:border-darkborder dark:focus:border-primary rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                }
-              />
-              {formErrors.email && (
-                <p className="text-sm text-red-500 mt-1">{formErrors.email}</p>
-              )}
-            </div>
-
-            {/* Role (read-only) */}
-            <div>
-              <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
-                Rôle
-              </label>
-              <input
-                type="text"
-                value={MOCK_USER.role}
-                readOnly
-                className="p-3 border border-gray-200 dark:border-darkborder rounded-lg w-full bg-grey dark:bg-darkmode/50 text-midnight_text/50 dark:text-white/40 cursor-not-allowed"
-              />
-              <p className="text-sm text-dark/40 dark:text-white/30 mt-1">
-                Le rôle est géré par un administrateur.
-              </p>
-            </div>
-
-            <div className="flex justify-end pt-2 border-t border-gray-200 dark:border-darkborder">
-              <button
-                type="submit"
-                className="mt-4 flex items-center gap-2 px-6 py-3 text-base font-medium text-white bg-primary hover:bg-orange-600 duration-300 rounded-lg"
-              >
-                <Icon icon="heroicons:check-20-solid" className="w-5 h-5" />
-                Sauvegarder
-              </button>
-            </div>
-          </form>
-        </Section>
-
-        {/* ── Password change ──────────────────────────────────── */}
-        <Section
-          title="Changer le mot de passe"
-          description="Choisissez un mot de passe fort (min. 8 caractères)."
-        >
-          <form onSubmit={handlePasswordSave} className="space-y-5">
-            {/* Current password */}
-            <div>
-              <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
-                Mot de passe actuel
-              </label>
-              <input
-                type="password"
-                value={pwForm.currentPassword}
-                onChange={(e) =>
-                  setPwForm({ ...pwForm, currentPassword: e.target.value })
-                }
-                placeholder="••••••••"
-                className={
-                  pwErrors.currentPassword
-                    ? "p-3 border border-red-400 focus:border-red-500 rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                    : "p-3 border border-gray-200 focus:border-primary dark:border-darkborder dark:focus:border-primary rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                }
-              />
-              {pwErrors.currentPassword && (
-                <p className="text-sm text-red-500 mt-1">
-                  {pwErrors.currentPassword}
-                </p>
-              )}
-            </div>
-
-            {/* New password */}
-            <div>
-              <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
-                Nouveau mot de passe
-              </label>
-              <input
-                type="password"
-                value={pwForm.newPassword}
-                onChange={(e) =>
-                  setPwForm({ ...pwForm, newPassword: e.target.value })
-                }
-                placeholder="••••••••"
-                className={
-                  pwErrors.newPassword
-                    ? "p-3 border border-red-400 focus:border-red-500 rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                    : "p-3 border border-gray-200 focus:border-primary dark:border-darkborder dark:focus:border-primary rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                }
-              />
-              {pwErrors.newPassword && (
-                <p className="text-sm text-red-500 mt-1">
-                  {pwErrors.newPassword}
-                </p>
-              )}
-            </div>
-
-            {/* Confirm */}
-            <div>
-              <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
-                Confirmer le nouveau mot de passe
-              </label>
-              <input
-                type="password"
-                value={pwForm.confirmPassword}
-                onChange={(e) =>
-                  setPwForm({ ...pwForm, confirmPassword: e.target.value })
-                }
-                placeholder="••••••••"
-                className={
-                  pwErrors.confirmPassword
-                    ? "p-3 border border-red-400 focus:border-red-500 rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                    : "p-3 border border-gray-200 focus:border-primary dark:border-darkborder dark:focus:border-primary rounded-lg w-full focus:outline-none text-midnight_text dark:text-white dark:bg-darkmode placeholder:text-[#668199]"
-                }
-              />
-              {pwErrors.confirmPassword && (
-                <p className="text-sm text-red-500 mt-1">
-                  {pwErrors.confirmPassword}
-                </p>
-              )}
-            </div>
-
-            <div className="flex justify-end pt-2 border-t border-gray-200 dark:border-darkborder">
-              <button
-                type="submit"
-                className="mt-4 flex items-center gap-2 px-6 py-3 text-base font-medium text-white bg-primary hover:bg-orange-600 duration-300 rounded-lg"
-              >
-                <Icon
-                  icon="heroicons:lock-closed-20-solid"
-                  className="w-5 h-5"
+        {/* ── Tab: Informations ────────────────────────────────── */}
+        {tab === "INFORMATIONS" && (
+          <Section
+            title="Informations du compte"
+            description="Modifiez votre nom et votre adresse email."
+          >
+            <form onSubmit={handleProfileSave} className="space-y-5">
+              {/* Nom */}
+              <div>
+                <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
+                  Nom complet
+                </label>
+                <input
+                  type="text"
+                  value={form.nomComplet}
+                  onChange={(e) =>
+                    setForm({ ...form, nomComplet: e.target.value })
+                  }
+                  className={inputCls(!!formErrors.nomComplet)}
                 />
-                Mettre à jour le mot de passe
-              </button>
-            </div>
-          </form>
-        </Section>
+                {formErrors.nomComplet && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {formErrors.nomComplet}
+                  </p>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className={inputCls(!!formErrors.email)}
+                />
+                {formErrors.email && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {formErrors.email}
+                  </p>
+                )}
+              </div>
+
+              {/* Rôle (read-only) */}
+              <div>
+                <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
+                  Rôle
+                </label>
+                <input
+                  type="text"
+                  value={displayRole}
+                  readOnly
+                  className="p-3 border border-gray-200 dark:border-darkborder rounded-lg w-full bg-grey dark:bg-darkmode/50 text-midnight_text/50 dark:text-white/40 cursor-not-allowed"
+                />
+                <p className="text-sm text-dark/40 dark:text-white/30 mt-1">
+                  Le rôle est géré par un administrateur.
+                </p>
+              </div>
+
+              <div className="flex justify-end pt-2 border-t border-gray-200 dark:border-darkborder">
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="mt-4 flex items-center gap-2 px-6 py-3 text-base font-medium text-white bg-primary hover:bg-orange-600 duration-300 rounded-lg disabled:opacity-60"
+                >
+                  {savingProfile ? (
+                    <Icon
+                      icon="heroicons:arrow-path-20-solid"
+                      className="w-5 h-5 animate-spin"
+                    />
+                  ) : (
+                    <Icon icon="heroicons:check-20-solid" className="w-5 h-5" />
+                  )}
+                  Sauvegarder
+                </button>
+              </div>
+            </form>
+          </Section>
+        )}
+
+        {/* ── Tab: Sécurité ─────────────────────────────────────── */}
+        {tab === "SECURITE" && (
+          <Section
+            title="Changer le mot de passe"
+            description="Choisissez un mot de passe fort (min. 8 caractères)."
+          >
+            <form onSubmit={handlePasswordSave} className="space-y-5">
+              {/* Mot de passe actuel */}
+              <div>
+                <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
+                  Mot de passe actuel
+                </label>
+                <input
+                  type="password"
+                  value={pwForm.currentPassword}
+                  onChange={(e) =>
+                    setPwForm({ ...pwForm, currentPassword: e.target.value })
+                  }
+                  placeholder="••••••••"
+                  className={inputCls(!!pwErrors.currentPassword)}
+                />
+                {pwErrors.currentPassword && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {pwErrors.currentPassword}
+                  </p>
+                )}
+              </div>
+
+              {/* Nouveau mot de passe */}
+              <div>
+                <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
+                  Nouveau mot de passe
+                </label>
+                <input
+                  type="password"
+                  value={pwForm.newPassword}
+                  onChange={(e) =>
+                    setPwForm({ ...pwForm, newPassword: e.target.value })
+                  }
+                  placeholder="••••••••"
+                  className={inputCls(!!pwErrors.newPassword)}
+                />
+                {pwErrors.newPassword && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {pwErrors.newPassword}
+                  </p>
+                )}
+              </div>
+
+              {/* Confirmer */}
+              <div>
+                <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
+                  Confirmer le nouveau mot de passe
+                </label>
+                <input
+                  type="password"
+                  value={pwForm.confirmPassword}
+                  onChange={(e) =>
+                    setPwForm({ ...pwForm, confirmPassword: e.target.value })
+                  }
+                  placeholder="••••••••"
+                  className={inputCls(!!pwErrors.confirmPassword)}
+                />
+                {pwErrors.confirmPassword && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {pwErrors.confirmPassword}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-2 border-t border-gray-200 dark:border-darkborder">
+                <button
+                  type="submit"
+                  disabled={savingPw}
+                  className="mt-4 flex items-center gap-2 px-6 py-3 text-base font-medium text-white bg-primary hover:bg-orange-600 duration-300 rounded-lg disabled:opacity-60"
+                >
+                  {savingPw ? (
+                    <Icon
+                      icon="heroicons:arrow-path-20-solid"
+                      className="w-5 h-5 animate-spin"
+                    />
+                  ) : (
+                    <Icon
+                      icon="heroicons:lock-closed-20-solid"
+                      className="w-5 h-5"
+                    />
+                  )}
+                  Mettre à jour le mot de passe
+                </button>
+              </div>
+            </form>
+          </Section>
+        )}
       </div>
     </>
   );

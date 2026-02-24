@@ -16,6 +16,7 @@ import {
   updateAdmin,
   deleteAdmin,
   updateAutorisations,
+  updateQuotite,
 } from "../actions";
 import { AUTORISATIONS, type AdminDTO, type Autorisation } from "../types";
 
@@ -194,12 +195,18 @@ function EditModal({
 }) {
   const [nomComplet, setNomComplet] = useState(admin.nomComplet);
   const [email, setEmail] = useState(admin.email);
+  const [quotite, setQuotite] = useState(String(admin.quotite ?? 0));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     startTransition(async () => {
+      const q = parseFloat(quotite);
+      if (isNaN(q) || q < 0) {
+        setErrors((prev) => ({ ...prev, quotite: "Valeur invalide." }));
+        return;
+      }
       const result = await updateAdmin(admin.id, { nomComplet, email });
       if (result.fieldErrors) {
         const flat: Record<string, string> = {};
@@ -207,13 +214,20 @@ function EditModal({
           if (v?.[0]) flat[k] = v[0];
         }
         setErrors(flat);
+        return;
       } else if (result.error) {
         toast.error(result.error);
-      } else {
-        toast.success("Administrateur mis à jour.");
-        onUpdated();
-        onClose();
+        return;
       }
+      // update quotite separately
+      const qResult = await updateQuotite(admin.id, q);
+      if (qResult.error) {
+        toast.error(qResult.error);
+        return;
+      }
+      toast.success("Administrateur mis à jour.");
+      onUpdated();
+      onClose();
     });
   }
 
@@ -267,6 +281,26 @@ function EditModal({
               />
               {errors.email && (
                 <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-base font-medium text-midnight_text dark:text-white mb-1.5">
+                Quotité
+              </label>
+              <input
+                type="number"
+                min={0}
+                step={0.01}
+                value={quotite}
+                onChange={(e) => setQuotite(e.target.value)}
+                placeholder="0"
+                className={inputCls(
+                  errors.quotite ? [errors.quotite] : undefined,
+                )}
+              />
+              {errors.quotite && (
+                <p className="text-sm text-red-500 mt-1">{errors.quotite}</p>
               )}
             </div>
 
@@ -499,14 +533,16 @@ export default function AdminsClient({
             <table className="min-w-full divide-y divide-gray-200 dark:divide-darkborder">
               <thead className="bg-grey dark:bg-darkmode">
                 <tr>
-                  {["Nom", "Email", "Autorisations", "Actions"].map((col) => (
-                    <th
-                      key={col}
-                      className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-midnight_text/50 dark:text-white/40"
-                    >
-                      {col}
-                    </th>
-                  ))}
+                  {["Nom", "Email", "Autorisations", "Quotité", "Actions"].map(
+                    (col) => (
+                      <th
+                        key={col}
+                        className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-midnight_text/50 dark:text-white/40"
+                      >
+                        {col}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-darkborder">
@@ -545,6 +581,11 @@ export default function AdminsClient({
                           ))
                         )}
                       </div>
+                    </td>
+
+                    {/* Quotité */}
+                    <td className="px-5 py-4 whitespace-nowrap text-base text-dark/50 dark:text-white/50">
+                      {admin.quotite ?? 0}
                     </td>
 
                     {/* Actions */}

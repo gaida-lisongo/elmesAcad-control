@@ -52,6 +52,25 @@ const Signin = () => {
       if (result?.error) {
         setAuthError("Email ou mot de passe incorrect.");
       } else {
+        // Load complete user data into store
+        try {
+          const response = await fetch("/api/me");
+          if (response.ok) {
+            const userData = await response.json();
+            const { setUser } = useAuthStore.getState();
+            setUser({
+              id: userData._id || userData.id,
+              nomComplet: userData.nomComplet || userData.name || "",
+              email: userData.email || "",
+              photoUrl: userData.photoUrl,
+              role: userData.role || "client",
+              autorisations: userData.autorisations,
+              quotite: userData.quotite,
+            });
+          }
+        } catch (err) {
+          console.error("Failed to load user data:", err);
+        }
         router.push("/dashboard");
         router.refresh();
       }

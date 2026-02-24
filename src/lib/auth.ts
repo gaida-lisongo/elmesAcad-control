@@ -31,6 +31,7 @@ export const authOptions: NextAuthOptions = {
             id: (admin._id as { toString(): string }).toString(),
             email: admin.email,
             name: admin.nomComplet,
+            photoUrl: admin.photoUrl,
             role: "admin" as const,
           };
         }
@@ -52,6 +53,7 @@ export const authOptions: NextAuthOptions = {
           id: (client._id as { toString(): string }).toString(),
           email: client.email,
           name: client.nomComplet,
+          photoUrl: client.photoUrl,
           role: "client" as const,
         };
       },
@@ -64,6 +66,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.photoUrl = (user as any).photoUrl;
       }
       return token;
     },
@@ -72,6 +75,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
+        (session.user as any).photoUrl = token.photoUrl;
       }
       return session;
     },

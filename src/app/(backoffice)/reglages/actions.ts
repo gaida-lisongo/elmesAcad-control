@@ -45,6 +45,7 @@ export async function getAdmins(): Promise<{
         nomComplet: a.nomComplet,
         email: a.email,
         autorisations: (a.autorisations ?? []) as Autorisation[],
+        quotite: (a as any).quotite ?? 0,
         createdAt: (a.createdAt as any)?.toISOString?.() ?? "",
       })),
     };
@@ -148,6 +149,23 @@ export async function updateAutorisations(
   try {
     await connectDB();
     await Admin.findByIdAndUpdate(id, { autorisations });
+    revalidatePath("/reglages");
+    return {};
+  } catch (err: any) {
+    return { error: err.message };
+  }
+}
+
+// ─── UPDATE quotité ───────────────────────────────────────────────────────────
+export async function updateQuotite(
+  id: string,
+  quotite: number,
+): Promise<ActionResult> {
+  if (typeof quotite !== "number" || quotite < 0)
+    return { error: "Quotité invalide." };
+  try {
+    await connectDB();
+    await Admin.findByIdAndUpdate(id, { quotite });
     revalidatePath("/reglages");
     return {};
   } catch (err: any) {

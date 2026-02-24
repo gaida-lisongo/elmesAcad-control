@@ -9,5 +9,6 @@ export interface AdminDTO {
   nomComplet: string;
   email: string;
   autorisations: Autorisation[];
+  quotite: number;
   createdAt: string;
 }

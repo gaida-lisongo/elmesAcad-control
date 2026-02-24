@@ -11,13 +11,15 @@ import { useTheme } from "next-themes";
 import { Icon } from "@iconify/react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
+import { useAuthStore } from "@/store/authStore";
 
 const Header: React.FC = () => {
   const { data: session } = useSession();
+  const user = useAuthStore((s) => s.user);
+  const clearUser = useAuthStore((s) => s.clearUser);
   const pathUrl = usePathname();
   const { theme, setTheme } = useTheme();
   const [navbarOpen, setNavbarOpen] = useState(false);
-  const [user, setUser] = useState<{ user: any } | null>(null);
   const [sticky, setSticky] = useState(false);
   const [isSignInOpen, setIsSignInOpen] = useState(false);
   const pathname = usePathname();
@@ -47,23 +49,14 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
-    if (typeof window !== "undefined") {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    }
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [pathname]);
+  }, []);
 
-  const handleSignOut = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("user");
-    }
-    signOut();
-    setUser(null);
+  const handleSignOut = async () => {
+    clearUser();
+    await signOut({ callbackUrl: "/signin" });
   };
 
   useEffect(() => {
@@ -82,6 +75,18 @@ const Header: React.FC = () => {
       document.body.style.overflow = "";
     }
   }, [isSignInOpen, navbarOpen]);
+
+  // Derive display values from store user
+  const displayName = user?.nomComplet || session?.user?.name || "";
+  const photoUrl = user?.photoUrl;
+
+  console.log("Current photo : ", user);
+  const initials = displayName
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <header
@@ -119,23 +124,29 @@ const Header: React.FC = () => {
               className="dark:hidden block"
             />
           </button>
-          {user?.user || session?.user ? (
+          {user || session?.user ? (
             <>
               <div className="relative group flex items-center justify-center">
-                <Image
-                  src="/images/profile.png"
-                  alt="Image"
-                  width={35}
-                  height={35}
-                  quality={100}
-                  className="rounded-full cursor-pointer"
-                />
+                {photoUrl ? (
+                  <Image
+                    key={photoUrl}
+                    src={photoUrl}
+                    alt={displayName}
+                    width={35}
+                    height={35}
+                    className="rounded-full cursor-pointer w-[35px] h-[35px] object-cover"
+                  />
+                ) : (
+                  <div className="w-[35px] h-[35px] rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                    {initials || "?"}
+                  </div>
+                )}
                 <p className="absolute w-fit text-sm font-medium text-center z-10 invisible group-hover:visible transition-opacity duration-200 bg-primary text-white py-1 px-3 min-w-28 rounded-md shadow-2xl top-full left-1/2 transform -translate-x-1/2 mt-3">
-                  {user?.user || session?.user?.name}
+                  {displayName}
                 </p>
               </div>
               <button
-                onClick={() => handleSignOut()}
+                onClick={handleSignOut}
                 className="hidden lg:block bg-primary text-sm hover:bg-orange-600 text-white px-4 py-3.5 border border-primary duration-500 leading-none rounded-lg font-medium text-nowrap cursor-pointer"
               >
                 Se déconnecter
