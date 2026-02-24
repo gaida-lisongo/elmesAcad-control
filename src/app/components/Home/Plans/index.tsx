@@ -16,25 +16,25 @@ const Plan = () => {
   const [enabled, setEnabled] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [MonthlyPlans, setMonthlyPlans] = useState<any[]>([])
-  const [yearlyPlans, setyearlyPlans] = useState<any[]>([])
+  const [MonthlyPlans, setMonthlyPlans] = useState<any[]>([]);
+  const [yearlyPlans, setyearlyPlans] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('/api/data')
-        if (!res.ok) throw new Error('Failed to fetch')
+        const res = await fetch("/api/data");
+        if (!res.ok) throw new Error("Failed to fetch");
 
-        const data = await res.json()
-        setMonthlyPlans(data.MonthlyPlans || [])
-        setyearlyPlans(data.yearlyPlans || [])
+        const data = await res.json();
+        setMonthlyPlans(data.MonthlyPlans || []);
+        setyearlyPlans(data.yearlyPlans || []);
       } catch (error) {
-        console.error('Error fetching services:', error)
+        console.error("Error fetching services:", error);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const plans = enabled ? yearlyPlans : MonthlyPlans;
 
@@ -49,7 +49,10 @@ const Plan = () => {
   };
 
   return (
-    <section className="relative bg-contain bg-no-repeat bg-[url('/images/plan/price-plan-background-icons.svg')] bg-center dark:bg-darkmode">
+    <section
+      id="pricing"
+      className="relative bg-contain bg-no-repeat bg-[url('/images/plan/price-plan-background-icons.svg')] bg-center dark:bg-darkmode"
+    >
       <div className="container mx-auto lg:max-w-xl md:max-w-screen-md px-4">
         <div className="text-center">
           <p className="text-lg text-black/50 dark:text-white/50 mb-1.875">

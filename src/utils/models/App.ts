@@ -21,6 +21,18 @@ export interface IModule extends Document {
   updatedAt: Date;
 }
 
+export interface IPackage extends Document {
+  titre: string;
+  description: string;
+  benefices: string[];
+  avantages: string[];
+  features: string[];
+  prix: number;
+  modules: mongoose.Types.ObjectId[]; // Référence aux modules inclus dans le package
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const HeroSchema: Schema<IHero> = new Schema(
   {
     promesse: { type: String, required: true },
@@ -44,8 +56,24 @@ const ModuleSchema: Schema<IModule> = new Schema(
   { timestamps: true },
 );
 
+const PackageSchema: Schema<IPackage> = new Schema(
+  {
+    titre: { type: String, required: true },
+    description: { type: String, required: true },
+    benefices: { type: [String], default: [] },
+    avantages: { type: [String], default: [] },
+    features: { type: [String], default: [] },
+    prix: { type: Number, required: true },
+    modules: [{ type: Schema.Types.ObjectId, ref: "Module" }],
+  },
+  { timestamps: true },
+);
+
 export const Module: Model<IModule> =
   mongoose.models.Module || mongoose.model<IModule>("Module", ModuleSchema);
 
 export const Hero: Model<IHero> =
   mongoose.models.Hero || mongoose.model<IHero>("Hero", HeroSchema);
+
+export const Package: Model<IPackage> =
+  mongoose.models.Package || mongoose.model<IPackage>("Package", PackageSchema);
