@@ -28,6 +28,7 @@ export interface IPackage extends Document {
   avantages: string[];
   features: string[];
   prix: number;
+  packageHeritage: mongoose.Types.ObjectId; // Référence à l'héritage du package
   modules: mongoose.Types.ObjectId[]; // Référence aux modules inclus dans le package
   createdAt: Date;
   updatedAt: Date;
@@ -64,9 +65,15 @@ const PackageSchema: Schema<IPackage> = new Schema(
     avantages: { type: [String], default: [] },
     features: { type: [String], default: [] },
     prix: { type: Number, required: true },
+    packageHeritage: {
+      type: Schema.Types.ObjectId,
+      ref: "Package",
+      required: false,
+      default: null,
+    },
     modules: [{ type: Schema.Types.ObjectId, ref: "Module" }],
   },
-  { timestamps: true },
+  { timestamps: true, strictPopulate: false },
 );
 
 export const Module: Model<IModule> =
