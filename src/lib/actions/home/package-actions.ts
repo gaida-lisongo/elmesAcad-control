@@ -33,8 +33,8 @@ export async function getPackages() {
     await connectDB();
     const packages = await Package.find()
       .sort({ createdAt: -1 })
-      .populate("modules", "-__v")
-      .populate("packageHeritage", "titre prix description -__v")
+      .populate("modules")
+      .populate("packageHeritage", "titre prix description")
       .lean()
       .exec();
     return { success: true, data: toPlainObject(packages) };
@@ -196,8 +196,8 @@ export async function updatePackage(
     const updated = await Package.findByIdAndUpdate(id, updateData, {
       new: true,
     })
-      .populate("modules", "-__v")
-      .populate("packageHeritage", "titre prix description -__v")
+      .populate("modules")
+      .populate("packageHeritage", "titre prix description")
       .lean();
 
     if (!updated) {
