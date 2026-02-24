@@ -80,7 +80,24 @@ const Header: React.FC = () => {
   const displayName = user?.nomComplet || session?.user?.name || "";
   const photoUrl = user?.photoUrl;
 
-  console.log("Current photo : ", user);
+  const menuNav = [
+    { label: "Accueil", href: "/" },
+    {
+      label: "Offres",
+      href: "/services",
+      submenu: [
+        { label: "Basique", href: "/services/edtech-apps" },
+        { label: "Pro", href: "/services/edtech-apps" },
+        { label: "Elite", href: "/services/edtech-apps" },
+      ],
+    },
+    {
+      label: "A propos",
+      href: "/portfolio",
+    },
+    { label: "Contact", href: "/contact" },
+  ];
+
   const initials = displayName
     .split(" ")
     .map((w) => w[0])
@@ -101,7 +118,7 @@ const Header: React.FC = () => {
       >
         <Logo />
         <ul className="hidden xl:flex flex-grow items-center justify-start gap-10 ">
-          {headerData.map((item, index) => (
+          {menuNav.map((item, index) => (
             <HeaderLink key={index} item={item} />
           ))}
         </ul>
