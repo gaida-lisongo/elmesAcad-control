@@ -1,3 +1,3 @@
 import { Admin, Client } from "./User";
-
-export { Admin, Client };
+import { Module, Hero } from "./App";
+export { Admin, Client, Module, Hero };

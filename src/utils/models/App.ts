@@ -1,0 +1,45 @@
+import mongoose, { Document, Model, Schema } from "mongoose";
+
+export interface IHero extends Document {
+  promesse: string;
+  description: string;
+  imageUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IModule extends Document {
+  nom: string;
+  icon?: any;
+  description: string;
+  probleme: string;
+  features: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const HeroSchema: Schema<IHero> = new Schema(
+  {
+    promesse: { type: String, required: true },
+    description: { type: String, required: true },
+    imageUrl: { type: String, required: true },
+  },
+  { timestamps: true },
+);
+
+const ModuleSchema: Schema<IModule> = new Schema(
+  {
+    nom: { type: String, required: true },
+    description: { type: String, required: true },
+    probleme: { type: String, required: true },
+    features: { type: [String], default: [] },
+    icon: { type: Schema.Types.Mixed, required: false },
+  },
+  { timestamps: true },
+);
+
+export const Module: Model<IModule> =
+  mongoose.models.Module || mongoose.model<IModule>("Module", ModuleSchema);
+
+export const Hero: Model<IHero> =
+  mongoose.models.Hero || mongoose.model<IHero>("Hero", HeroSchema);
