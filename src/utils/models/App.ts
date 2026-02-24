@@ -11,8 +11,10 @@ export interface IHero extends Document {
 export interface IModule extends Document {
   nom: string;
   icon?: any;
+  imageUrl?: string;
   description: string;
   probleme: string;
+  slug?: string;
   features: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -34,6 +36,8 @@ const ModuleSchema: Schema<IModule> = new Schema(
     probleme: { type: String, required: true },
     features: { type: [String], default: [] },
     icon: { type: Schema.Types.Mixed, required: false },
+    imageUrl: { type: String, required: false },
+    slug: { type: String, required: false },
   },
   { timestamps: true },
 );
