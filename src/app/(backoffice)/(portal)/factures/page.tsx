@@ -200,7 +200,7 @@ export default function FacturesPage() {
           setCommandes((prev) => [
             ...prev,
             {
-              _id: result.data?.commandeId,
+              _id: result.data?.commandeId?.toString(),
               orderNumber: result.data?.orderNumber,
               amount: result.data?.amount,
               status: "pending",
