@@ -1,9 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import KPI from "./KPI";
-import Depense, { StatusBadge } from "./Depense";
+import Depense from "./Depense";
 import FormDepense from "./FormDepense";
 import Recette from "./Recette";
+import {
+  getDashboardData,
+  DashboardData,
+} from "@/lib/actions/dashboard-actions";
+import { useAuthStore } from "@/store/authStore";
 
 // ─── Fake data — TODO: replace with real API calls ────────────────────────────
 export interface StatItem {
@@ -16,182 +22,128 @@ export interface StatItem {
 }
 
 export interface ActivityItem {
-  id: number;
+  id: string;
   icon: string;
   color: string;
   text: string;
   time: string;
 }
 
-const STATS: StatItem[] = [
-  {
-    label: "Clients actifs",
-    value: "142",
-    delta: "+12 ce mois",
-    positive: true,
-    icon: "heroicons:users-20-solid",
-    color: "bg-primary/10 text-primary",
-  },
-  {
-    label: "Transactions",
-    value: "1 840",
-    delta: "+230 ce mois",
-    positive: true,
-    icon: "heroicons:arrows-right-left-20-solid",
-    color: "bg-blue/10 text-blue",
-  },
-  {
-    label: "Revenus (USD)",
-    value: "$24 500",
-    delta: "+8,4 %",
-    positive: true,
-    icon: "heroicons:banknotes-20-solid",
-    color: "bg-success/10 text-success",
-  },
-  {
-    label: "Factures en attente",
-    value: "17",
-    delta: "-3 depuis hier",
-    positive: false,
-    icon: "heroicons:document-text-20-solid",
-    color: "bg-red-500/10 text-red-500",
-  },
-];
-
-const RECENT_CLIENTS = [
-  {
-    id: "c1",
-    nom: "Acme Corp",
-    email: "billing@acme.io",
-    plan: "Pro",
-    status: "actif",
-    joined: "20 fév. 2026",
-  },
-  {
-    id: "c2",
-    nom: "Globex Ltd",
-    email: "admin@globex.com",
-    plan: "Starter",
-    status: "actif",
-    joined: "19 fév. 2026",
-  },
-  {
-    id: "c3",
-    nom: "Initech SA",
-    email: "contact@initech.cd",
-    plan: "Pro",
-    status: "inactif",
-    joined: "15 fév. 2026",
-  },
-  {
-    id: "c4",
-    nom: "Umbrella Inc",
-    email: "ops@umbrella.com",
-    plan: "Enterprise",
-    status: "actif",
-    joined: "10 fév. 2026",
-  },
-  {
-    id: "c5",
-    nom: "Soylent NV",
-    email: "hello@soylent.be",
-    plan: "Starter",
-    status: "actif",
-    joined: "8 fév. 2026",
-  },
-];
-
-const RECENT_TRANSACTIONS = [
-  {
-    id: "t1",
-    client: "Acme Corp",
-    amount: "$1 200",
-    type: "Paiement",
-    date: "22 fév.",
-    status: "succès",
-  },
-  {
-    id: "t2",
-    client: "Globex Ltd",
-    amount: "$340",
-    type: "Paiement",
-    date: "21 fév.",
-    status: "succès",
-  },
-  {
-    id: "t3",
-    client: "Umbrella Inc",
-    amount: "$4 800",
-    type: "Paiement",
-    date: "21 fév.",
-    status: "succès",
-  },
-  {
-    id: "t4",
-    client: "Initech SA",
-    amount: "$600",
-    type: "Remboursement",
-    date: "20 fév.",
-    status: "en attente",
-  },
-  {
-    id: "t5",
-    client: "Soylent NV",
-    amount: "$220",
-    type: "Paiement",
-    date: "19 fév.",
-    status: "échoué",
-  },
-];
-
-const ACTIVITY_FEED: ActivityItem[] = [
-  {
-    id: 1,
-    icon: "heroicons:user-plus-20-solid",
-    color: "text-primary bg-primary/10",
-    text: "Nouveau client : Acme Corp",
-    time: "Il y a 2 h",
-  },
-  {
-    id: 2,
-    icon: "heroicons:banknotes-20-solid",
-    color: "text-success bg-success/10",
-    text: "Paiement reçu : $1 200 — Acme Corp",
-    time: "Il y a 3 h",
-  },
-  {
-    id: 3,
-    icon: "heroicons:document-text-20-solid",
-    color: "text-blue bg-blue/10",
-    text: "Facture #F-0084 générée",
-    time: "Il y a 5 h",
-  },
-  {
-    id: 4,
-    icon: "heroicons:exclamation-triangle-20-solid",
-    color: "text-red-500 bg-red-500/10",
-    text: "Transaction échouée — Initech SA",
-    time: "Hier",
-  },
-  {
-    id: 5,
-    icon: "heroicons:arrow-path-20-solid",
-    color: "text-primary bg-primary/10",
-    text: "Remboursement traité : $600",
-    time: "Hier",
-  },
-];
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const { user } = useAuthStore();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      if (!user?.id) return;
+
+      try {
+        const data = await getDashboardData(
+          user.id,
+          (user.role || "client") as "admin" | "client",
+        );
+        setDashboardData(data);
+      } catch (error) {
+        console.error("Erreur lors du chargement des données:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [user?.id, user?.role]);
+
+  if (loading || !dashboardData) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-midnight_text dark:text-white">
+            Tableau de bord
+          </h2>
+          <p className="text-base text-dark/50 dark:text-white/50 mt-1">
+            Chargement des données...
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white dark:bg-darklight rounded-3xl p-6 h-24 animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Construire les KPI stats
+  const STATS: StatItem[] = [
+    {
+      label: "Transactions complètes",
+      value: dashboardData.transactions
+        .filter((t) => t.status === "completed")
+        .length.toString(),
+      delta: `${dashboardData.revenuePercent}% complètes`,
+      positive: true,
+      icon: "heroicons:arrows-right-left-20-solid",
+      color: "bg-blue/10 text-blue",
+    },
+    {
+      label: "Revenus perçus (USD)",
+      value: `$${dashboardData.totalRevenue.toFixed(2)}`,
+      delta: `Quotite: ${(dashboardData.quotite * 100).toFixed(0)}%`,
+      positive: true,
+      icon: "heroicons:banknotes-20-solid",
+      color: "bg-success/10 text-success",
+    },
+    {
+      label: "Montants dépensés (USD)",
+      value: `$${dashboardData.totalSpent.toFixed(2)}`,
+      delta: `${dashboardData.spentPercent}% complétés`,
+      positive: dashboardData.totalSpent === 0,
+      icon: "heroicons:arrow-down-tray-20-solid",
+      color: "bg-primary/10 text-primary",
+    },
+    {
+      label: "Solde disponible (USD)",
+      value: `$${dashboardData.balance.toFixed(2)}`,
+      delta: dashboardData.balance >= 0 ? "Positif" : "Négatif",
+      positive: dashboardData.balance >= 0,
+      icon: "heroicons:wallet-20-solid",
+      color:
+        dashboardData.balance >= 0
+          ? "bg-success/10 text-success"
+          : "bg-red-500/10 text-red-500",
+    },
+  ];
+
+  // Formater les transactions pour Recette
+  const formattedTransactions = dashboardData.transactions.map((t) => ({
+    id: t._id,
+    client: t.clientId || "N/A",
+    amount: `$${t.amount.toFixed(2)}`,
+    type: t.category || "Paiement",
+    date: new Date(t.createdAt).toLocaleDateString("fr-FR"),
+    status:
+      t.status === "completed"
+        ? "succès"
+        : t.status === "pending"
+          ? "en attente"
+          : "échoué",
+  }));
+
   return (
     <div className="space-y-8">
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div>
         <h2 className="text-midnight_text dark:text-white">Tableau de bord</h2>
         <p className="text-base text-dark/50 dark:text-white/50 mt-1">
-          Vue d&apos;ensemble de votre activité — données simulées
+          Vue d&apos;ensemble de votre activité
         </p>
       </div>
 
@@ -199,19 +151,26 @@ export default function DashboardPage() {
 
       {/* ── Main grid ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-12 gap-6">
-        {/* Recent clients table */}
+        {/* Clients ou stats */}
         <Depense
           cols={["Client", "Email", "Plan", "Statut", "Rejoint le"]}
-          data={RECENT_CLIENTS}
+          data={dashboardData.clients}
+          isAdmin={user?.role === "admin"}
         />
 
-        {/* Activity feed */}
-        <FormDepense activityFeed={ACTIVITY_FEED} />
+        {/* Activity feed and withdrawal form */}
+        <FormDepense
+          activityFeed={dashboardData.activities}
+          balance={dashboardData.balance}
+          userId={user?.id || ""}
+          userRole={(user?.role || "client") as "admin" | "client"}
+        />
 
         {/* Recent transactions */}
-        <Recette cols={[
-          'Client', 'Montant', 'Moyen', 'Date', 'Statut'
-        ]} data={RECENT_TRANSACTIONS} />
+        <Recette
+          cols={["Client", "Montant", "Type", "Date", "Statut"]}
+          data={formattedTransactions}
+        />
       </div>
     </div>
   );

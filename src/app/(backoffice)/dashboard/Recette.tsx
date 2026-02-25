@@ -13,9 +13,11 @@ export default function Recette({
         <h4 className="text-midnight_text dark:text-white">
           Transactions récentes
         </h4>
-        <span className="text-sm text-dark/40 dark:text-white/30 italic">
-          Données simulées
-        </span>
+        {data.length === 0 && (
+          <span className="text-sm text-dark/40 dark:text-white/30 italic">
+            Aucune transaction
+          </span>
+        )}
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-darkborder">
@@ -32,28 +34,39 @@ export default function Recette({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-darkborder">
-            {data.map((t) => (
-              <tr
-                key={t.id}
-                className="hover:bg-grey dark:hover:bg-darkmode/50 duration-200"
-              >
-                <td className="px-5 py-3.5 whitespace-nowrap text-base font-medium text-midnight_text dark:text-white">
-                  {t.client}
-                </td>
-                <td className="px-5 py-3.5 whitespace-nowrap text-base font-semibold text-midnight_text dark:text-white">
-                  {t.amount}
-                </td>
-                <td className="px-5 py-3.5 whitespace-nowrap text-base text-dark/50 dark:text-white/50">
-                  {t.type}
-                </td>
-                <td className="px-5 py-3.5 whitespace-nowrap text-sm text-dark/50 dark:text-white/50">
-                  {t.date}
-                </td>
-                <td className="px-5 py-3.5 whitespace-nowrap">
-                  <StatusBadge status={t.status} />
+            {data.length > 0 ? (
+              data.map((t) => (
+                <tr
+                  key={t.id}
+                  className="hover:bg-grey dark:hover:bg-darkmode/50 duration-200"
+                >
+                  <td className="px-5 py-3.5 whitespace-nowrap text-base font-medium text-midnight_text dark:text-white">
+                    {t.client}
+                  </td>
+                  <td className="px-5 py-3.5 whitespace-nowrap text-base font-semibold text-midnight_text dark:text-white">
+                    {t.amount}
+                  </td>
+                  <td className="px-5 py-3.5 whitespace-nowrap text-base text-dark/50 dark:text-white/50">
+                    {t.type}
+                  </td>
+                  <td className="px-5 py-3.5 whitespace-nowrap text-sm text-dark/50 dark:text-white/50">
+                    {t.date}
+                  </td>
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <StatusBadge status={t.status} />
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={cols.length}
+                  className="px-5 py-8 text-center text-dark/50 dark:text-white/50"
+                >
+                  Aucune transaction pour le moment
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
