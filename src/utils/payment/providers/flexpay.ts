@@ -209,6 +209,48 @@ class FlexPayService extends ServicePay {
       data: { orderNumber: json?.orderNumber, status: json?.status },
     };
   }
+
+  async balance(): Promise<any> {
+    try {
+      await this.ensureValidToken();
+      // console.log("🔐 FlexPay payout token", this.tokenOut);
+      console.log(
+        "🔐 FlexPay payout token valid, checking balance...",
+        this.apiCheckOutHost + "/balance/" + this.merchantOut,
+      );
+      const res = await fetch(
+        this.apiCheckOutHost + "/balance/" + this.merchantOut,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.tokenOut}`,
+          },
+          cache: "no-store",
+        },
+      );
+
+      if (!res.ok) {
+        throw new Error(`FlexPay balance check failed: HTTP ${res.status}`);
+      }
+
+      const json = await res.json();
+      return {
+        success: json?.code === "0",
+        message: json?.message ?? "FlexPay balance",
+        data: json?.balances,
+      };
+    } catch (error: any) {
+      console.error(
+        "❌ Erreur lors de la récupération du solde FlexPay:",
+        error,
+      );
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
 }
 
 // ✅ singleton module-scope
