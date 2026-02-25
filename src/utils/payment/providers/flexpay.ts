@@ -14,6 +14,7 @@ class FlexPayService extends ServicePay {
   private cardEndpoint = process.env.FLEX_CARD!;
   private token = process.env.FLEX_TOKEN!; // IN token (card/momo)
   private merchant = process.env.FLEX_MERCHANT!;
+  private merchantOut = process.env.FLEX_OUT_MERCHANT!;
   private callbackUrl = process.env.FLEX_CALLBACK_URL!;
 
   // payout token (comme ton code)
@@ -32,6 +33,7 @@ class FlexPayService extends ServicePay {
       this.cardEndpoint,
       this.token,
       this.merchant,
+      this.merchantOut,
       this.callbackUrl,
     ];
 
@@ -178,7 +180,7 @@ class FlexPayService extends ServicePay {
     phone = "243" + phone;
 
     const payload = {
-      merchant: this.merchant,
+      merchant: this.merchantOut,
       type: "1",
       reference: args.reference,
       amount: args.amount,

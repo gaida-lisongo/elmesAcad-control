@@ -167,6 +167,7 @@ export default function DashboardPage() {
         <Depense
           cols={["Référence", "Montant", "Téléphone", "Date", "Statut"]}
           data={formattedWithdrawals}
+          userRole={(user?.role || "client") as "admin" | "client"}
         />
 
         {/* Withdrawal form */}

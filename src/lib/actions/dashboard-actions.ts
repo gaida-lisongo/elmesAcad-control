@@ -375,6 +375,101 @@ export async function createWithdrawal(
 }
 
 /**
+ * Confirme un retrait en le soumettant à FlexPay
+ */
+export async function confirmWithdrawal(
+  withdrawalId: string,
+  role: "admin" | "client",
+  amount: number,
+  phone: string,
+  reference: string,
+): Promise<{
+  success: boolean;
+  message: string;
+  data?: any;
+}> {
+  try {
+    await connectDB();
+
+    const withdrawalId_ObjectId = new mongoose.Types.ObjectId(withdrawalId);
+
+    // 1. Appeler l'API FlexPay pour initier le retrait
+    const flexpayResponse = await fetch(
+      `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/flexpay`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount,
+          phone,
+          reference,
+        }),
+      },
+    );
+
+    const flexpayData = await flexpayResponse.json();
+
+    if (!flexpayData.success) {
+      return {
+        success: false,
+        message: flexpayData.message || "Erreur FlexPay",
+      };
+    }
+
+    const orderNumber = flexpayData.data?.orderNumber;
+
+    if (!orderNumber) {
+      return {
+        success: false,
+        message: "Pas d'orderNumber reçu de FlexPay",
+      };
+    }
+
+    // 2. Mettre à jour le retrait dans la base de données
+    let updatedWithdrawal;
+
+    if (role === "client") {
+      updatedWithdrawal = await Withdraw.findByIdAndUpdate(
+        withdrawalId_ObjectId,
+        {
+          orderNumber,
+          status: "completed",
+        },
+        { returnDocument: "after" },
+      ).lean();
+    } else if (role === "admin") {
+      updatedWithdrawal = await WithdrawAdmin.findByIdAndUpdate(
+        withdrawalId_ObjectId,
+        {
+          orderNumber,
+          status: "completed",
+        },
+        { returnDocument: "after" },
+      ).lean();
+    }
+
+    if (!updatedWithdrawal) {
+      return {
+        success: false,
+        message: "Retrait non trouvé",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Retrait confirmé avec succès",
+      data: updatedWithdrawal,
+    };
+  } catch (error) {
+    console.error("Erreur lors de la confirmation du retrait:", error);
+    return {
+      success: false,
+      message: "Erreur lors de la confirmation du retrait",
+    };
+  }
+}
+
+/**
  * Sérialise les ObjectIds MongoDB en strings pour les Client Components
  */
 function serializeData(data: any): any {

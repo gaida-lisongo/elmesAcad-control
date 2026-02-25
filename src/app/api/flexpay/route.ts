@@ -150,8 +150,8 @@ export async function PATCH(request: NextRequest) {
       reference,
     });
 
+    console.log("✅ Retrait FlexPay reçu:", result);
     if (result.success) {
-      console.log("✅ Retrait FlexPay réussi:", result.data);
       return NextResponse.json(
         {
           success: true,
