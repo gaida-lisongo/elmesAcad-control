@@ -53,17 +53,41 @@ class MegaService {
   /**
    * Upload depuis un Buffer (idéal en Next.js server)
    */
-  async uploadBuffer(name: string, buffer: Buffer): Promise<MegaUploadResult> {
+  async uploadBuffer(
+    name: string,
+    inputBuffer: any,
+  ): Promise<MegaUploadResult> {
     const storage = await this.connect();
+
+    // Assurer qu'on a un vrai Buffer
+    let buffer: Buffer;
+    if (Buffer.isBuffer(inputBuffer)) {
+      buffer = inputBuffer;
+    } else if (inputBuffer instanceof ArrayBuffer) {
+      buffer = Buffer.from(new Uint8Array(inputBuffer));
+    } else if (inputBuffer instanceof Uint8Array) {
+      buffer = Buffer.from(inputBuffer);
+    } else {
+      buffer = Buffer.from(inputBuffer);
+    }
+
     const size = buffer.length;
-    const stream = Readable.from(buffer);
 
     return new Promise((resolve, reject) => {
+      // Créer un stream lisible avec allowUploadBuffering
+      const stream = new Readable();
+      stream.push(buffer);
+      stream.push(null);
+
       // Upload à la racine (storage.root) — à adapter si tu veux un dossier.
-      storage.upload({ name, size }, stream, (err: any, file: any) => {
-        if (err) return reject(err);
-        resolve(file);
-      });
+      storage.upload(
+        { name, size, allowUploadBuffering: true },
+        stream,
+        (err: any, file: any) => {
+          if (err) return reject(err);
+          resolve(file);
+        },
+      );
     });
   }
 

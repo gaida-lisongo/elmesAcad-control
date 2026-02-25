@@ -235,7 +235,7 @@ const ContactForm = ({ data }: { data: any }) => {
                     id="project"
                     value={formData.project}
                     onChange={handleChange}
-                    className="w-full text-base px-4 py-2.5 rounded-lg border-border dark:text-white border-solid dark:bg-transparent border transition-all duration-500 focus:border-primary dark:focus:border-primary dark:border-darkborder focus:outline-0"
+                    className="w-full text-base px-4 py-2.5 rounded-lg border-border dark:text-white border-solid dark:bg-darkmode dark:border-darkborder border transition-all duration-500 focus:border-primary dark:focus:border-primary focus:outline-0"
                   >
                     <option value="">Choisissez le type d'application</option>
                     <option value="Application éducative">
@@ -287,7 +287,7 @@ const ContactForm = ({ data }: { data: any }) => {
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  className="border border-border px-4 py-2 w-full focus:outline-hidden bg-white dark:bg-darkmode dark:border-border_color rounded-lg dark:focus:border-primary focus:border-primary h-32"
+                  className="border border-border px-4 py-2 w-full focus:outline-hidden bg-white dark:bg-darkmode dark:text-white dark:border-darkborder rounded-lg dark:focus:border-primary focus:border-primary h-32 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   placeholder="Décrivez votre projet ou toute autre information que vous souhaitez partager"
                 ></textarea>
               </div>
