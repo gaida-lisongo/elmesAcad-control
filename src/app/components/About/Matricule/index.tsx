@@ -25,6 +25,15 @@ const iconMap: { [key: string]: string } = {
   Adresse: "mdi:map-marker-outline",
 };
 
+const bgGradients = [
+  "from-blue-500/20 to-blue-600/20",
+  "from-green-500/20 to-green-600/20",
+  "from-purple-500/20 to-purple-600/20",
+  "from-orange-500/20 to-orange-600/20",
+  "from-pink-500/20 to-pink-600/20",
+  "from-red-500/20 to-red-600/20",
+];
+
 const Matricule = () => {
   const [items, setItems] = useState<IMatriculeItem[]>([]);
   const [isAdding, setIsAdding] = useState(false);
@@ -78,33 +87,40 @@ const Matricule = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <div
               key={item._id}
-              className="border border-border dark:border-darkborder rounded-lg p-6 hover:shadow-lg transition-shadow"
+              className={`relative group rounded-lg overflow-hidden border border-border dark:border-darkborder hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br ${
+                bgGradients[index % bgGradients.length]
+              }`}
             >
-              <div className="flex items-center justify-between mb-4">
-                <Icon
-                  icon={iconMap[item.designation] || "mdi:file-outline"}
-                  width="32"
-                  height="32"
-                  className="text-primary"
-                />
-                {isAdmin && (
-                  <button
-                    onClick={() => handleDeleteItem(item._id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    ✕
-                  </button>
-                )}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/5 group-hover:to-primary/15 transition-all"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-lg bg-primary/20 group-hover:bg-primary/30 transition-colors flex items-center justify-center">
+                    <Icon
+                      icon={iconMap[item.designation] || "mdi:file-outline"}
+                      width="28"
+                      height="28"
+                      className="text-primary"
+                    />
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleDeleteItem(item._id)}
+                      className="text-red-500 hover:text-red-700 hover:scale-125 transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-midnight_text dark:text-white mb-3">
+                  {item.designation}
+                </h3>
+                <p className="text-black/70 dark:text-white/70 font-mono text-sm bg-black/5 dark:bg-white/5 p-3 rounded-lg break-all">
+                  {item.value}
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-midnight_text dark:text-white mb-2">
-                {item.designation}
-              </h3>
-              <p className="text-black/70 dark:text-white/70 font-mono text-sm break-all">
-                {item.value}
-              </p>
             </div>
           ))}
         </div>
@@ -112,7 +128,7 @@ const Matricule = () => {
         {isAdmin && (
           <div>
             {isAdding ? (
-              <div className="border border-border dark:border-darkborder rounded-lg p-6 space-y-4 max-w-2xl">
+              <div className="border border-border dark:border-darkborder rounded-lg p-6 space-y-4 max-w-2xl bg-primary/5">
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Désignation*
@@ -150,13 +166,13 @@ const Matricule = () => {
                   <button
                     onClick={handleAddItem}
                     disabled={loading}
-                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-all"
                   >
                     {loading ? "..." : "Ajouter"}
                   </button>
                   <button
                     onClick={() => setIsAdding(false)}
-                    className="flex-1 px-4 py-2 border border-border rounded-lg"
+                    className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                   >
                     Annuler
                   </button>
@@ -165,7 +181,7 @@ const Matricule = () => {
             ) : (
               <button
                 onClick={() => setIsAdding(true)}
-                className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 font-medium"
+                className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 font-medium transition-all hover:shadow-lg"
               >
                 + Ajouter une référence
               </button>

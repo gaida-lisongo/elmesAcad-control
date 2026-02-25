@@ -7,8 +7,8 @@ import { WhyUs, Matricule, Admin } from "@/utils/models";
 export async function getWhyUs() {
   try {
     await connectDB();
-    const items = await WhyUs.find().sort({ createdAt: -1 });
-    return { success: true, data: items };
+    const items = await WhyUs.find().sort({ createdAt: -1 }).lean();
+    return { success: true, data: JSON.parse(JSON.stringify(items)) };
   } catch (error) {
     console.error("Erreur getWhyUs:", error);
     return { success: false, data: [] };
@@ -19,7 +19,7 @@ export async function createWhyUs(titre: string, description: string) {
   try {
     await connectDB();
     const newItem = await WhyUs.create({ titre, description });
-    return { success: true, data: newItem };
+    return { success: true, data: JSON.parse(JSON.stringify(newItem)) };
   } catch (error) {
     console.error("Erreur createWhyUs:", error);
     return { success: false, message: "Erreur lors de la création" };
@@ -41,8 +41,8 @@ export async function deleteWhyUs(id: string) {
 export async function getMatricules() {
   try {
     await connectDB();
-    const items = await Matricule.find().sort({ createdAt: -1 });
-    return { success: true, data: items };
+    const items = await Matricule.find().sort({ createdAt: -1 }).lean();
+    return { success: true, data: JSON.parse(JSON.stringify(items)) };
   } catch (error) {
     console.error("Erreur getMatricules:", error);
     return { success: false, data: [] };
@@ -53,7 +53,7 @@ export async function createMatricule(designation: string, value: string) {
   try {
     await connectDB();
     const newItem = await Matricule.create({ designation, value });
-    return { success: true, data: newItem };
+    return { success: true, data: JSON.parse(JSON.stringify(newItem)) };
   } catch (error) {
     console.error("Erreur createMatricule:", error);
     return { success: false, message: "Erreur lors de la création" };
@@ -75,10 +75,10 @@ export async function deleteMatricule(id: string) {
 export async function getAdmins() {
   try {
     await connectDB();
-    const admins = await Admin.find({ role: "admin" }).select(
-      "nomComplet email photoUrl createdAt",
-    );
-    return { success: true, data: admins };
+    const admins = await Admin.find({ role: "admin" })
+      .select("nomComplet email photoUrl createdAt")
+      .lean();
+    return { success: true, data: JSON.parse(JSON.stringify(admins)) };
   } catch (error) {
     console.error("Erreur getAdmins:", error);
     return { success: false, data: [] };
