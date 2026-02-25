@@ -52,8 +52,13 @@ class MailService {
     subject: string;
     text: string;
     html?: string;
+    attachments?: Array<{
+      filename: string;
+      content: Buffer | string;
+      contentType?: string;
+    }>;
   }) {
-    const { to, subject, text, html } = params;
+    const { to, subject, text, html, attachments } = params;
 
     const transporter = this.getTransporter();
 
@@ -64,6 +69,7 @@ class MailService {
         subject,
         text,
         html,
+        attachments,
       });
       return info;
     } catch (err) {
