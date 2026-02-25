@@ -75,7 +75,6 @@ export default function FormDepense({
         setMessageType("success");
         setMessage("Retrait créé avec succès!");
         setFormData({ amount: "", phone: "", reference: "", description: "" });
-        setIsFormOpen(false);
         // Reload dashboard data after creating withdrawal
         setTimeout(() => {
           window.location.reload();
@@ -117,20 +116,18 @@ export default function FormDepense({
             </p>
           </div>
 
-          {canWithdraw && (
-            <button
-              onClick={() => setIsFormOpen(!isFormOpen)}
-              type="button"
-              className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium text-sm"
-            >
-              {isFormOpen ? "Annuler" : "Créer un retrait"}
-            </button>
-          )}
+          <button
+            onClick={() => setIsFormOpen(!isFormOpen)}
+            type="button"
+            className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium text-sm"
+          >
+            {isFormOpen ? "Masquer formulaire" : "Créer un retrait"}
+          </button>
         </div>
       </div>
 
       {/* Withdrawal Form */}
-      {canWithdraw && isFormOpen && (
+      {isFormOpen && (
         <div className="bg-white dark:bg-darklight rounded-3xl border-b-2 border-gray-200 dark:border-darkborder shadow-card-shadow p-6">
           <h4 className="text-midnight_text dark:text-white mb-4">
             Nouveau retrait
@@ -149,9 +146,9 @@ export default function FormDepense({
                 step="0.01"
                 min="0"
                 max={balance}
-                className="w-full px-3 py-2 border border-gray-200 dark:border-darkborder rounded-lg bg-white dark:bg-darkmode text-midnight_text dark:text-white focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-darkborder rounded-lg bg-white dark:bg-darkmode text-midnight_text dark:text-white focus:outline-none focus:border-primary disabled:opacity-50"
                 required
-                disabled={isLoading}
+                disabled={isLoading || !canWithdraw}
               />
               <p className="text-xs text-dark/50 dark:text-white/50 mt-1">
                 Max: ${balance.toFixed(2)}
@@ -168,9 +165,9 @@ export default function FormDepense({
                 value={formData.phone}
                 onChange={handleInputChange}
                 placeholder="+243..."
-                className="w-full px-3 py-2 border border-gray-200 dark:border-darkborder rounded-lg bg-white dark:bg-darkmode text-midnight_text dark:text-white focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-darkborder rounded-lg bg-white dark:bg-darkmode text-midnight_text dark:text-white focus:outline-none focus:border-primary disabled:opacity-50"
                 required
-                disabled={isLoading}
+                disabled={isLoading || !canWithdraw}
               />
             </div>
 
@@ -184,9 +181,9 @@ export default function FormDepense({
                 value={formData.reference}
                 onChange={handleInputChange}
                 placeholder="REF-001"
-                className="w-full px-3 py-2 border border-gray-200 dark:border-darkborder rounded-lg bg-white dark:bg-darkmode text-midnight_text dark:text-white focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-darkborder rounded-lg bg-white dark:bg-darkmode text-midnight_text dark:text-white focus:outline-none focus:border-primary disabled:opacity-50"
                 required
-                disabled={isLoading}
+                disabled={isLoading || !canWithdraw}
               />
             </div>
 
@@ -200,8 +197,8 @@ export default function FormDepense({
                 onChange={handleInputChange}
                 placeholder="Description du retrait..."
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-200 dark:border-darkborder rounded-lg bg-white dark:bg-darkmode text-midnight_text dark:text-white focus:outline-none focus:border-primary resize-none"
-                disabled={isLoading}
+                className="w-full px-3 py-2 border border-gray-200 dark:border-darkborder rounded-lg bg-white dark:bg-darkmode text-midnight_text dark:text-white focus:outline-none focus:border-primary resize-none disabled:opacity-50"
+                disabled={isLoading || !canWithdraw}
               />
             </div>
 
@@ -219,8 +216,9 @@ export default function FormDepense({
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !canWithdraw}
               className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+              title={!canWithdraw ? "Solde insuffisant" : ""}
             >
               {isLoading ? "Traitement..." : "Créer le retrait"}
             </button>

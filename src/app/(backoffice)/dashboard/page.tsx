@@ -137,6 +137,18 @@ export default function DashboardPage() {
           : "échoué",
   }));
 
+  // Formater les withdrawals pour Depense (10 derniers)
+  const formattedWithdrawals = dashboardData.withdrawals
+    .slice(0, 10)
+    .map((w) => ({
+      id: w._id,
+      reference: w.reference,
+      amount: `$${w.amount.toFixed(2)}`,
+      phone: w.phone,
+      date: new Date(w.createdAt).toLocaleDateString("fr-FR"),
+      status: w.status,
+    }));
+
   return (
     <div className="space-y-8">
       {/* ── Header ─────────────────────────────────────────────────────── */}
@@ -151,11 +163,10 @@ export default function DashboardPage() {
 
       {/* ── Main grid ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-12 gap-6">
-        {/* Clients ou stats */}
+        {/* Recent withdrawals */}
         <Depense
-          cols={["Client", "Email", "Plan", "Statut", "Rejoint le"]}
-          data={dashboardData.clients}
-          isAdmin={user?.role === "admin"}
+          cols={["Référence", "Montant", "Téléphone", "Date", "Statut"]}
+          data={formattedWithdrawals}
         />
 
         {/* Activity feed and withdrawal form */}
