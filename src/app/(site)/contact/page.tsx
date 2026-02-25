@@ -1,28 +1,34 @@
 import HeroSub from "@/app/components/SharedComponent/HeroSub";
 import ContactForm from "@/app/components/Contact/Form";
-import ContactInfo from "@/app/components/Contact/ContactInfo";
-import Location from "@/app/components/Contact/OfficeLocation";
+import ContactInfo from "@/app/components/Contact/ContactInfo/ContactInfo";
+import PhoneNumbers from "@/app/components/Contact/PhoneNumbers";
 import React from "react";
 import { Metadata } from "next";
+import { getContact } from "@/lib/actions/contact-actions";
+
 export const metadata: Metadata = {
-  title: "Contact | SassCandy",
+  title: "Contact | SaasCandy",
 };
 
-const page = () => {
+const page = async () => {
+  // Fetch contact UNE SEULE FOIS côté serveur
+  const contact = await getContact();
+
   const breadcrumbLinks = [
-    { href: "/", text: "Home" },
+    { href: "/", text: "Accueil" },
     { href: "/contact", text: "Contact" },
   ];
+
   return (
     <>
       <HeroSub
-        title="Contact Us"
-        description="Discover a wealth of insightful materials meticulously crafted to provide you with a comprehensive understanding of the latest trends."
+        title="Contactez-nous"
+        description="Découvrez une richesse de matériaux perspicaces méticuleusement conçus pour vous fournir une compréhension complète des dernières tendances."
         breadcrumbLinks={breadcrumbLinks}
       />
-      <ContactInfo />
-      <ContactForm />
-      <Location />
+      <ContactInfo data={contact} />
+      <PhoneNumbers data={contact} />
+      <ContactForm data={contact} />
     </>
   );
 };

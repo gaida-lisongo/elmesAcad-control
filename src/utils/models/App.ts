@@ -8,6 +8,19 @@ export interface IHero extends Document {
   updatedAt: Date;
 }
 
+export interface IContact extends Document {
+  email: string;
+  adresse: string;
+  photoUrl: string;
+  telephones: {
+    service: string;
+    mission: string;
+    email: string;
+    phone: string;
+  }[];
+  mission: string;
+}
+
 export interface IModule extends Document {
   nom: string;
   icon?: any;
@@ -39,6 +52,24 @@ const HeroSchema: Schema<IHero> = new Schema(
     promesse: { type: String, required: true },
     description: { type: String, required: true },
     imageUrl: { type: String, required: true },
+  },
+  { timestamps: true },
+);
+
+const ContactSchema: Schema<IContact> = new Schema(
+  {
+    email: { type: String, required: true },
+    adresse: { type: String, required: true },
+    photoUrl: { type: String, required: true },
+    telephones: [
+      {
+        service: { type: String, required: true },
+        mission: { type: String, required: true },
+        email: { type: String, required: true },
+        phone: { type: String, required: true },
+      },
+    ],
+    mission: { type: String, required: true },
   },
   { timestamps: true },
 );
@@ -84,3 +115,6 @@ export const Hero: Model<IHero> =
 
 export const Package: Model<IPackage> =
   mongoose.models.Package || mongoose.model<IPackage>("Package", PackageSchema);
+
+export const Contact: Model<IContact> =
+  mongoose.models.Contact || mongoose.model<IContact>("Contact", ContactSchema);
