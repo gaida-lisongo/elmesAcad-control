@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     await connectToDatabase();
 
-    const account = await Account.find()
+    const account: any = await Account.find()
       .populate("packageId")
       .populate("clientId", "nomComplet email logo uuid isActive")
       // .where("clientId.uuid")
@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
       // .equals(true)
       .lean();
 
-    const client = account.find(
-      (acc) => acc.clientId?.uuid === uuid && acc.clientId?.isActive,
+    const client: any = account.find(
+      (acc: any) => acc.clientId?.uuid === uuid && acc.clientId?.isActive,
     );
 
     console.log("Résultat de la requête:", client);

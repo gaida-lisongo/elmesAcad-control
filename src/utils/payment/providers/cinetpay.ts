@@ -112,7 +112,11 @@ export class CinetPayService extends ServicePay {
   }
 
   async withdraw(_: any): Promise<PayResult> {
-    // ton code Node simulait le payout :contentReference[oaicite:6]{index=6}
+    // ton code Node simulait le payout
     return { success: false, message: "CinetPay payout not implemented yet" };
+  }
+
+  async balance(): Promise<PayResult> {
+    return { success: false, message: "CinetPay balance not implemented yet" };
   }
 }

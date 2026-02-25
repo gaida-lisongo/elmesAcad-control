@@ -46,32 +46,24 @@ export async function GET(request: NextRequest) {
 
     // Group by category for statistics
     const categories = Array.from(
-      new Set(commandes.map((c: ICommandeProduct) => c.category)),
+      new Set(commandes.map((c: any) => c.category)),
     ) as string[];
 
     const stats = {
       totalCommandes: commandes.length,
-      totalRevenu: commandes.reduce(
-        (sum: number, c: ICommandeProduct) => sum + c.amount,
-        0,
-      ),
+      totalRevenu: commandes.reduce((sum: number, c: any) => sum + c.amount, 0),
       categories: categories.map((cat) => ({
         name: cat,
-        count: commandes.filter((c: ICommandeProduct) => c.category === cat)
-          .length,
+        count: commandes.filter((c: any) => c.category === cat).length,
         revenue: commandes
-          .filter((c: ICommandeProduct) => c.category === cat)
-          .reduce((sum: number, c: ICommandeProduct) => sum + c.amount, 0),
+          .filter((c: any) => c.category === cat)
+          .reduce((sum: number, c: any) => sum + c.amount, 0),
       })),
       byStatus: {
-        pending: commandes.filter(
-          (c: ICommandeProduct) => c.status === "pending",
-        ).length,
-        completed: commandes.filter(
-          (c: ICommandeProduct) => c.status === "completed",
-        ).length,
-        failed: commandes.filter((c: ICommandeProduct) => c.status === "failed")
+        pending: commandes.filter((c: any) => c.status === "pending").length,
+        completed: commandes.filter((c: any) => c.status === "completed")
           .length,
+        failed: commandes.filter((c: any) => c.status === "failed").length,
       },
     };
 

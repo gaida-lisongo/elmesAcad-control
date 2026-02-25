@@ -12,17 +12,15 @@ const manrope = Manrope({ subsets: ["latin"] });
 
 export default function RootLayout({
   children,
-  session,
 }: Readonly<{
   children: React.ReactNode;
-  session: any;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={manrope.className}>
         <NextTopLoader color="#EE7B11" />
         <AuthDialogProvider>
-          <SessionProviderComp session={session}>
+          <SessionProviderComp>
             <ThemeProvider
               attribute="class"
               enableSystem={false}

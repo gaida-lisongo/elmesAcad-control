@@ -1,6 +1,6 @@
 import type { ProviderName } from "./types";
 import { getFlexPayService } from "./providers/flexpay";
-import { CinetPayService } from "./providers/CinetPay";
+import { CinetPayService } from "./providers/cinetpay";
 import { WonyaPayService } from "./providers/wonyapay";
 import { ServicePay } from "./base";
 

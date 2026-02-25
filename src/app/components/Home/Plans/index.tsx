@@ -27,10 +27,10 @@ interface Plan {
 
 interface PlanProps {
   onSelectPackage?: (plan: Plan) => void;
-  ref: string;
+  ref?: string;
 }
 
-const Plan = ({ onSelectPackage, ref }: PlanProps) => {
+const Plan = ({ onSelectPackage, ref = "pricing" }: PlanProps) => {
   const [enabled, setEnabled] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);

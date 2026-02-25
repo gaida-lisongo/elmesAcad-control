@@ -41,12 +41,13 @@ export async function updateProfile(data: {
     // Validate input
     const parsed = UpdateProfileSchema.safeParse(data);
     if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstErrorKey = Object.keys(
+        fieldErrors,
+      )[0] as keyof typeof fieldErrors;
       return {
         success: false,
-        error:
-          parsed.error.flatten().fieldErrors[
-            Object.keys(parsed.error.flatten().fieldErrors)[0]
-          ]?.[0] || "Erreur de validation.",
+        error: fieldErrors[firstErrorKey]?.[0] || "Erreur de validation.",
       };
     }
 
@@ -60,10 +61,10 @@ export async function updateProfile(data: {
 
     await connectDB();
     const isAdmin = session.user.role === "admin";
-    const Model = isAdmin ? Admin : Client;
 
     // Check email conflict only if email is being updated
     if (parsed.data.email) {
+      const Model: any = isAdmin ? Admin : Client;
       const conflict = await Model.findOne({
         email: parsed.data.email,
         _id: { $ne: session.user.id },
@@ -77,6 +78,7 @@ export async function updateProfile(data: {
     if (parsed.data.nomComplet) updateData.nomComplet = parsed.data.nomComplet;
     if (parsed.data.email) updateData.email = parsed.data.email;
 
+    const Model: any = isAdmin ? Admin : Client;
     const updated = await Model.findByIdAndUpdate(session.user.id, updateData, {
       new: true,
     })
@@ -127,8 +129,8 @@ export async function updateAvatar(formData: FormData) {
 
     await connectDB();
     const isAdmin = session.user.role === "admin";
-    const Model = isAdmin ? Admin : Client;
 
+    const Model: any = isAdmin ? Admin : Client;
     const updated = await Model.findByIdAndUpdate(
       session.user.id,
       { photoUrl: result.secure_url },
@@ -168,19 +170,20 @@ export async function changePassword(data: {
     // Validate input
     const parsed = ChangePasswordSchema.safeParse(data);
     if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstErrorKey = Object.keys(
+        fieldErrors,
+      )[0] as keyof typeof fieldErrors;
       return {
         success: false,
-        error:
-          parsed.error.flatten().fieldErrors[
-            Object.keys(parsed.error.flatten().fieldErrors)[0]
-          ]?.[0] || "Erreur de validation.",
+        error: fieldErrors[firstErrorKey]?.[0] || "Erreur de validation.",
       };
     }
 
     await connectDB();
     const isAdmin = session.user.role === "admin";
-    const Model = isAdmin ? Admin : Client;
 
+    const Model: any = isAdmin ? Admin : Client;
     const user = await Model.findById(session.user.id);
     if (!user) {
       return { success: false, error: "Utilisateur introuvable." };

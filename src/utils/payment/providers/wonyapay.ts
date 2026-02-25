@@ -118,4 +118,8 @@ export class WonyaPayService extends ServicePay {
       data: json?.data,
     };
   }
+
+  async balance(): Promise<PayResult> {
+    return { success: false, message: "WonyaPay balance not implemented yet" };
+  }
 }
