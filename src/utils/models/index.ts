@@ -1,5 +1,5 @@
 import { Admin, Client } from "./User";
-import { Module, Hero, Package, Contact } from "./App";
+import { Module, Hero, Package, Contact, WhyUs, Matricule } from "./App";
 import {
   CommandePackage,
   Account,
@@ -14,6 +14,8 @@ export {
   Hero,
   Contact,
   Package,
+  WhyUs,
+  Matricule,
   CommandePackage,
   Account,
   CommandeProduct,

@@ -1,12 +1,12 @@
 "use server";
 
-import { connectToDatabase } from "@/lib/db";
+import { connectDB } from "@/lib/db";
 import { WhyUs, Matricule, Admin } from "@/utils/models";
 
 // WhyUs Actions
 export async function getWhyUs() {
   try {
-    await connectToDatabase();
+    await connectDB();
     const items = await WhyUs.find().sort({ createdAt: -1 });
     return { success: true, data: items };
   } catch (error) {
@@ -17,7 +17,7 @@ export async function getWhyUs() {
 
 export async function createWhyUs(titre: string, description: string) {
   try {
-    await connectToDatabase();
+    await connectDB();
     const newItem = await WhyUs.create({ titre, description });
     return { success: true, data: newItem };
   } catch (error) {
@@ -28,7 +28,7 @@ export async function createWhyUs(titre: string, description: string) {
 
 export async function deleteWhyUs(id: string) {
   try {
-    await connectToDatabase();
+    await connectDB();
     await WhyUs.findByIdAndDelete(id);
     return { success: true };
   } catch (error) {
@@ -40,7 +40,7 @@ export async function deleteWhyUs(id: string) {
 // Matricule Actions
 export async function getMatricules() {
   try {
-    await connectToDatabase();
+    await connectDB();
     const items = await Matricule.find().sort({ createdAt: -1 });
     return { success: true, data: items };
   } catch (error) {
@@ -51,7 +51,7 @@ export async function getMatricules() {
 
 export async function createMatricule(designation: string, value: string) {
   try {
-    await connectToDatabase();
+    await connectDB();
     const newItem = await Matricule.create({ designation, value });
     return { success: true, data: newItem };
   } catch (error) {
@@ -62,7 +62,7 @@ export async function createMatricule(designation: string, value: string) {
 
 export async function deleteMatricule(id: string) {
   try {
-    await connectToDatabase();
+    await connectDB();
     await Matricule.findByIdAndDelete(id);
     return { success: true };
   } catch (error) {
@@ -74,7 +74,7 @@ export async function deleteMatricule(id: string) {
 // Teams Actions (Admins)
 export async function getAdmins() {
   try {
-    await connectToDatabase();
+    await connectDB();
     const admins = await Admin.find({ role: "admin" }).select(
       "nomComplet email photoUrl createdAt",
     );

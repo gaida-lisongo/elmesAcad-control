@@ -61,7 +61,7 @@ const WhyUs = () => {
           {/* Logo section */}
           <div className="flex justify-center lg:justify-start">
             <Image
-              src="/images/logo/elmes-logo.png"
+              src="/images/logo/LOGO_ELMES-03.png"
               alt="ELMES"
               width={300}
               height={300}
