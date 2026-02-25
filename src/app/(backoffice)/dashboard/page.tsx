@@ -125,7 +125,7 @@ export default function DashboardPage() {
   // Formater les transactions pour Recette
   const formattedTransactions = dashboardData.transactions.map((t) => ({
     id: t._id,
-    client: t.clientId || "N/A",
+    client: t.clientId?.nomComplet || "N/A",
     amount: `$${t.amount.toFixed(2)}`,
     type: t.category || "Paiement",
     date: new Date(t.createdAt).toLocaleDateString("fr-FR"),

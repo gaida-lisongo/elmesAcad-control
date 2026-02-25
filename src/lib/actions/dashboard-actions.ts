@@ -47,6 +47,7 @@ export async function getDashboardData(
       const commandeProducts = await CommandeProduct.find({
         clientId: userId_ObjectId,
       })
+        .populate("clientId", "nomComplet email")
         .lean()
         .sort({ createdAt: -1 });
 
@@ -110,6 +111,7 @@ export async function getDashboardData(
     if (role === "admin") {
       // 1. Récupérer toutes les CommandeProduct
       const commandeProducts = await CommandeProduct.find({})
+        .populate("clientId", "nomComplet email")
         .lean()
         .sort({ createdAt: -1 });
 
