@@ -12,9 +12,13 @@ import { Icon } from "@iconify/react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useAuthStore } from "@/store/authStore";
+import { getPackages } from "@/lib/actions/clients-management-actions";
 
 const Header: React.FC = () => {
   const { data: session } = useSession();
+  const [packages, setPackages] = useState<{ label: string; href: string }[]>(
+    [],
+  );
   const user = useAuthStore((s) => s.user);
   const clearUser = useAuthStore((s) => s.clearUser);
   const pathUrl = usePathname();
@@ -26,6 +30,25 @@ const Header: React.FC = () => {
   const navbarRef = useRef<HTMLDivElement>(null);
   const signInRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  const loadPackages = async () => {
+    try {
+      const res = await getPackages();
+
+      const menuPackages: { label: string; href: string }[] = [];
+
+      if (res.length) {
+        for (const pkg of res) {
+          const item = { label: pkg.titre, href: `/offre/${pkg._id}` };
+          menuPackages.push(item);
+        }
+      }
+
+      setPackages(menuPackages);
+    } catch (error) {
+      console.error("Erreur lors du chargement des packages:", error);
+    }
+  };
 
   const handleScroll = () => {
     setSticky(window.scrollY >= 80);
@@ -49,6 +72,7 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
+    loadPackages();
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
@@ -85,11 +109,7 @@ const Header: React.FC = () => {
     {
       label: "Offres",
       href: "/services",
-      submenu: [
-        { label: "Basique", href: "/services/edtech-apps" },
-        { label: "Pro", href: "/services/edtech-apps" },
-        { label: "Elite", href: "/services/edtech-apps" },
-      ],
+      submenu: packages,
     },
     {
       label: "A propos",
@@ -230,7 +250,7 @@ const Header: React.FC = () => {
           </button>
         </div>
         <nav className="flex flex-col items-start p-4">
-          {headerData.map((item, index) => (
+          {menuNav.map((item, index) => (
             <MobileHeaderLink key={index} item={item} />
           ))}
           <div className="mt-4 flex gap-4 w-full">

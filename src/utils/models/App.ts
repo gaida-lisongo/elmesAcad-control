@@ -61,6 +61,16 @@ export interface IPackage extends Document {
   updatedAt: Date;
 }
 
+export interface IFAQPackage extends Document {
+  packageId: mongoose.Types.ObjectId; // Référence au package
+  faqItems: {
+    question: string;
+    answer: string;
+  }[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const HeroSchema: Schema<IHero> = new Schema(
   {
     promesse: { type: String, required: true },
@@ -136,6 +146,23 @@ const PackageSchema: Schema<IPackage> = new Schema(
   },
   { timestamps: true, strictPopulate: false },
 );
+
+const FAQPackageSchema: Schema<IFAQPackage> = new Schema(
+  {
+    packageId: { type: Schema.Types.ObjectId, ref: "Package", required: true },
+    faqItems: [
+      {
+        question: { type: String, required: true },
+        answer: { type: String, required: true },
+      },
+    ],
+  },
+  { timestamps: true },
+);
+
+export const FAQPackage: Model<IFAQPackage> =
+  mongoose.models.FAQPackage ||
+  mongoose.model<IFAQPackage>("FAQPackage", FAQPackageSchema);
 
 export const Module: Model<IModule> =
   mongoose.models.Module || mongoose.model<IModule>("Module", ModuleSchema);

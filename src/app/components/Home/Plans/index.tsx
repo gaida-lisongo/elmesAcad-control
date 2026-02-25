@@ -27,9 +27,10 @@ interface Plan {
 
 interface PlanProps {
   onSelectPackage?: (plan: Plan) => void;
+  ref: string;
 }
 
-const Plan = ({ onSelectPackage }: PlanProps) => {
+const Plan = ({ onSelectPackage, ref }: PlanProps) => {
   const [enabled, setEnabled] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -239,7 +240,7 @@ const Plan = ({ onSelectPackage }: PlanProps) => {
 
   return (
     <section
-      id="pricing"
+      id={ref}
       className="relative bg-contain bg-no-repeat bg-[url('/images/plan/price-plan-background-icons.svg')] bg-center dark:bg-darkmode"
     >
       <div className="container mx-auto lg:max-w-xl md:max-w-screen-md px-4">

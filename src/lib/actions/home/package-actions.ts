@@ -47,6 +47,32 @@ export async function getPackages() {
   }
 }
 
+export async function getPackageById(id: string) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return { success: false, error: "ID du package invalide." };
+    }
+
+    await connectDB();
+    const pkg = await Package.findById(id)
+      .populate("modules")
+      .populate("packageHeritage", "titre prix description modules")
+      .populate("packageHeritage.modules", "nom description features")
+      .lean()
+      .exec();
+    if (!pkg) {
+      return { success: false, error: "Package non trouvé." };
+    }
+    return { success: true, data: toPlainObject(pkg) };
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération du package:", error);
+    return {
+      success: false,
+      error: "Erreur lors de la récupération du package.",
+    };
+  }
+}
+
 // ─── CREATE: Create package (Admin only) ────────────────────────────────────
 
 export async function createPackage(data: {

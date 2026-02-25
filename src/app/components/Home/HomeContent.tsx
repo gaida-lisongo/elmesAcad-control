@@ -41,7 +41,7 @@ export default function HomeContent() {
       <Hero />
       <Services />
       <Features />
-      <Plan onSelectPackage={handleSelectPackage} />
+      <Plan ref="pricing" onSelectPackage={handleSelectPackage} />
       {/* <ProductDoc />
       <FAQ />
       <Info />
