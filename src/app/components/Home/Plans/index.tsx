@@ -246,13 +246,14 @@ const Plan = ({ onSelectPackage, ref }: PlanProps) => {
       <div className="container mx-auto lg:max-w-xl md:max-w-screen-md px-4">
         <div className="text-center">
           <p className="text-lg text-black/50 dark:text-white/50 mb-1.875">
-            Pricing Plan
+            Nos offres & formules
           </p>
+
           <h3 className="md:text-6xl sm:text-40 text-3xl font-semibold text-dark dark:text-white">
-            What’s About Our
-            <br /> Pricing Subscription
+            Choisissez la formule adaptée
+            <br /> à la digitalisation de votre institution
           </h3>
-          <div className="mt-17 mb-5">
+          {/* <div className="mt-17 mb-5">
             <div className="flex justify-center items-center gap-4">
               <label
                 htmlFor="switch"
@@ -284,7 +285,7 @@ const Plan = ({ onSelectPackage, ref }: PlanProps) => {
               height="24"
               className="absolute -top-3 -right-1.875"
             />
-          </div>
+          </div> */}
           <div className="grid grid-cols-12 pt-17 sm:gap-1.875 gap-y-1.875">
             {loading ? (
               <div className="col-span-12 text-center py-10">

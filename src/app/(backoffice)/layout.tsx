@@ -2,6 +2,13 @@ import BackofficeSideNav from "./_components/BackofficeSideNav";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+export const metadata: Metadata = {
+  title: "Backoffice | ElmesAcad",
+  icons: {
+    icon: "/images/logo/logo.png",
+  },
+};
 
 export default async function BackofficeLayout({
   children,

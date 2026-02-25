@@ -71,7 +71,7 @@ const OffrePage = async ({ params }: { params: Promise<{ slug: string }> }) => {
   }));
 
   return (
-    <div className="">
+    <div className="mt-15">
       {/* 1. ATTENTION - Eye-catching hero */}
       <OffreHero
         titre={offre.titre}

@@ -7,7 +7,7 @@ import { Metadata } from "next";
 import { getContact } from "@/lib/actions/contact-actions";
 
 export const metadata: Metadata = {
-  title: "Contact | SaasCandy",
+  title: "Contact",
 };
 
 const page = async () => {

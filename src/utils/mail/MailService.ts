@@ -64,7 +64,7 @@ class MailService {
 
     try {
       const info = await transporter.sendMail({
-        from: `"ESURSI-APP" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+        from: `"ElmesAcad" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
         to,
         subject,
         text,
@@ -111,12 +111,12 @@ class MailService {
   }) {
     const { email, nomComplet, password, apiKey } = params;
 
-    const subject = "Bienvenue sur SaasCandy - Vos accès";
+    const subject = "Bienvenue sur ElmesAcad - Vos accès";
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
         <h2 style="color: #333;">Bienvenue, ${nomComplet}!</h2>
-        <p style="color: #666; line-height: 1.6;">Votre commande a été confirmée et votre compte a été activé sur <strong>SaasCandy</strong>.</p>
+        <p style="color: #666; line-height: 1.6;">Votre commande a été confirmée et votre compte a été activé sur <strong>ElmesAcad</strong>.</p>
         
         <div style="background-color: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin: 20px 0;">
           <h3 style="color: #333; margin-top: 0;">Vos identifiants d'accès:</h3>
@@ -143,7 +143,7 @@ class MailService {
         </p>
 
         <p style="color: #999; font-size: 12px;">
-          <strong>SaasCandy Support</strong>
+          <strong>ElmesAcad Support</strong>
         </p>
       </div>
     `;

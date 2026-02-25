@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { getHero, createOrUpdateHero } from "@/lib/actions/home/hero-actions";
+import { Loader } from "../../Common";
 
 interface HeroData {
   _id?: string;
@@ -21,17 +22,18 @@ const DEFAULT_HERO: HeroData = {
   imageUrl: "/images/hero/right-image.png",
 };
 
-const Hero: React.FC = () => {
+const Hero: React.FC<{ data: HeroData }> = ({ data }) => {
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = !!user;
   const isAdmin = user?.role === "admin";
+  const [loading, setLoading] = useState(false);
 
-  const [heroData, setHeroData] = useState<HeroData>(DEFAULT_HERO);
+  const [heroData, setHeroData] = useState<HeroData>(data || DEFAULT_HERO);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const [tempData, setTempData] = useState<HeroData>(DEFAULT_HERO);
+  const [tempData, setTempData] = useState<HeroData>(data || DEFAULT_HERO);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imagePreviewRef = useRef<string | null>(null);
 
@@ -49,6 +51,7 @@ const Hero: React.FC = () => {
   // Charger les données Hero au montage
   useEffect(() => {
     const fetchHero = async () => {
+      setLoading(true);
       try {
         const result = await getHero();
         if (result.success && result.data) {
@@ -57,9 +60,11 @@ const Hero: React.FC = () => {
         }
       } catch (error) {
         console.error("Erreur au chargement de Hero:", error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchHero();
+    // fetchHero();
   }, []);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,6 +186,11 @@ const Hero: React.FC = () => {
     }
     imagePreviewRef.current = null;
   };
+
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <section className="overflow-x-hidden before:content-[''] before:absolute lg:before:h-full sm:before:h-2/3 before:h-3/5 before:bg-no-repeat before:bg-[url('/images/hero/right-background.svg')] before:bg-cover before:right-0 lg:before:top-0 before:bottom-0 lg:before:w-40% before:w-full lg:before:z-0 before:z-1 sm:before:block before:hidden after:content-[''] after:absolute after:bg-grey dark:after:bg-darklight after:h-full lg:after:w-60% after:w-full after:left-0 after:top-0 relative h-full lg:py-9.375! pt-24! pb-0!">
       <div className="container mx-auto lg:max-w-xl md:max-w-screen-md">

@@ -21,7 +21,7 @@ interface SelectedPackage {
   features?: string[];
 }
 
-export default function HomeContent() {
+export default function HomeContent({ data }: { data: any }) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] =
     useState<SelectedPackage | null>(null);
@@ -38,7 +38,7 @@ export default function HomeContent() {
 
   return (
     <main>
-      <Hero />
+      <Hero data={data} />
       <Services />
       <Features />
       <Plan ref="pricing" onSelectPackage={handleSelectPackage} />

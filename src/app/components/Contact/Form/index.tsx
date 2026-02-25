@@ -312,15 +312,15 @@ const ContactForm = ({ data }: { data: any }) => {
               </div>
             )}
           </div>
-          <div className="col-span-6">
+          <div className="col-span-6 flex items-center justify-center">
             {isEditingPhoto && isAdmin && data?.photoUrl ? (
-              <div className="space-y-4">
+              <div className="space-y-4 w-full">
                 <h3 className="text-lg font-bold">Modifier la photo</h3>
                 {photoUrl && (
                   <img
                     src={photoUrl}
                     alt="preview"
-                    className="w-full rounded-lg object-cover"
+                    className="w-full rounded-lg object-cover mx-auto mt-4"
                   />
                 )}
                 <div>
@@ -355,7 +355,7 @@ const ContactForm = ({ data }: { data: any }) => {
                 </div>
               </div>
             ) : (
-              <div className="relative">
+              <div className="relative w-full">
                 <Image
                   src={
                     photoUrl ||

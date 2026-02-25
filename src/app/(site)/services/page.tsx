@@ -2,7 +2,7 @@ import ServicesCard from "@/app/components/Services/ServiceCard";
 import HeroSub from "@/app/components/SharedComponent/HeroSub";
 import { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Services | SassCandy",
+  title: "Services | ElmesAcad",
 };
 
 const page = () => {

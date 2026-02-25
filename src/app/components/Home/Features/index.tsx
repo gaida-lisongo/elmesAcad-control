@@ -69,10 +69,10 @@ const Features = () => {
           <div className="lg:col-span-6 col-span-12 px-3">
             <motion.div {...leftAnimation}>
               <Image
-                src="/images/services/our-service.webp"
+                src="/images/brands/cart-1.jpg"
                 alt="workflow"
                 width={550}
-                height={450}
+                height={650}
                 className="w-full h-full"
               />
             </motion.div>

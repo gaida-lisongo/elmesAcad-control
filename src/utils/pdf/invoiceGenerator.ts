@@ -43,11 +43,11 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(28);
   doc.setFont("helvetica", "bold");
-  doc.text("SAASCANDY", 20, 20);
+  doc.text("ELMESACAD", 20, 20);
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  doc.text("Control Plane Services", 20, 28);
+  doc.text("ElmesAcad Services", 20, 28);
 
   // Titre FACTURE
   doc.setFontSize(24);
@@ -186,7 +186,7 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Buffer> {
   // Contact
   doc.setFontSize(9);
   doc.setTextColor(59, 130, 246); // accentColor
-  doc.text("Contact: support@saascandy.com", 150, yPos);
+  doc.text("Contact: support@elmesacad.com", 150, yPos);
 
   // Convertir le PDF en Buffer
   const pdfOutput = doc.output("arraybuffer");

@@ -254,13 +254,25 @@ const Header: React.FC = () => {
             <MobileHeaderLink key={index} item={item} />
           ))}
           <div className="mt-4 flex gap-4 w-full">
-            <Link
-              href="/signin"
-              className="bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary hover:text-white"
-              onClick={() => setNavbarOpen(false)}
-            >
-              Se connecter
-            </Link>
+            {user?.id ? (
+              <Link
+                href={
+                  "/dashbaord" // TODO: change to profile page when implemented
+                }
+                target="_blank"
+                className="hidden lg:block bg-primary text-white hover:bg-orange-600 text-sm px-4 py-3.5 leading-none rounded-lg font-medium text-nowrap"
+              >
+                {user?.nomComplet}
+              </Link>
+            ) : (
+              <Link
+                href="/signin"
+                className="bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary hover:text-white"
+                onClick={() => setNavbarOpen(false)}
+              >
+                Se connecter
+              </Link>
+            )}
           </div>
         </nav>
       </div>

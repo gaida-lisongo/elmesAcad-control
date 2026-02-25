@@ -1,8 +1,12 @@
-'use client'
+"use client";
+import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function ScrollToTop() {
+  const { user } = useAuthStore();
+  console.log("User in ScrollToTop:", user); // Debug log to check user state
+
   const [isVisible, setIsVisible] = useState(false);
 
   // Top: 0 takes us all the way back to the top of the page
@@ -32,9 +36,17 @@ export default function ScrollToTop() {
   return (
     <div className="fixed bottom-8 right-8 z-999">
       <div className="flex items-center gap-2.5">
-        <Link href={"https://getnextjstemplates.com/products/saascandy-nextjs-website-template"} target="_blank" className="hidden lg:block bg-primary text-white hover:bg-orange-600 text-sm px-4 py-3.5 leading-none rounded-lg font-medium text-nowrap">
-          Get This Template
-        </Link>
+        {user?.id && (
+          <Link
+            href={
+              "/dashbaord" // TODO: change to profile page when implemented
+            }
+            target="_blank"
+            className="hidden lg:block bg-primary text-white hover:bg-orange-600 text-sm px-4 py-3.5 leading-none rounded-lg font-medium text-nowrap"
+          >
+            {user?.nomComplet}
+          </Link>
+        )}
         {isVisible && (
           <div
             onClick={scrollToTop}

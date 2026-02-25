@@ -157,7 +157,7 @@ export async function validateWithdraw(
     await mailService.sendMail({
       to: (withdraw as any).accountId.clientId.email,
       subject: `Confirmation de retrait - ${withdraw.reference}`,
-      text: `Bonjour ${(withdraw as any).accountId.clientId.nomComplet},\n\nVotre retrait de ${withdraw.amount}$ a été validé.\n\nVeuillez trouver votre facture en pièce jointe.\n\nCordialement,\nL'équipe SaasCandy`,
+      text: `Bonjour ${(withdraw as any).accountId.clientId.nomComplet},\n\nVotre retrait de ${withdraw.amount}$ a été validé.\n\nVeuillez trouver votre facture en pièce jointe.\n\nCordialement,\nL'équipe ElmesAcad`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
           <h2 style="color: #333;">Retrait validé</h2>
@@ -184,7 +184,7 @@ export async function validateWithdraw(
           </p>
 
           <p style="color: #999; font-size: 12px;">
-            <strong>SaasCandy Support</strong>
+            <strong>ElmesAcad Support</strong>
           </p>
         </div>
       `,
