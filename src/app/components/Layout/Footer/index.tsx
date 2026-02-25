@@ -1,27 +1,71 @@
-"use client"
+"use client";
 import React, { FC, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
 
+interface ClientData {
+  nomComplet: string;
+  email: string;
+  logo: string;
+  uuid: string;
+  quotite: number;
+}
+
 const Footer: FC = () => {
-  const [services, setServices] = useState<any[]>([])
+  const [services, setServices] = useState<any[]>([]);
+  const [uuid, setUuid] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [clientData, setClientData] = useState<ClientData | null>(null);
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('/api/service')
-        if (!res.ok) throw new Error('Failed to fetch')
+        const res = await fetch("/api/service");
+        if (!res.ok) throw new Error("Failed to fetch");
 
-        const data = await res.json()
-        setServices(data.ServicesData || [])
+        const data = await res.json();
+        setServices(data.ServicesData || []);
       } catch (error) {
-        console.error('Error fetching services:', error)
+        console.error("Error fetching services:", error);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
+
+  const handleVerifyClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setClientData(null);
+
+    try {
+      const res = await fetch("/api/client/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uuid }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setClientData(data.data);
+        setShowModal(true);
+      } else {
+        setError(data.message || "Erreur lors de la vérification");
+        setShowModal(true);
+      }
+    } catch (error) {
+      setError("Erreur serveur");
+      setShowModal(true);
+      console.error("Erreur:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <footer className="bg-Dark-primary dark:bg-darklight py-17 pb-6">
       <div className="container mx-auto lg:max-w-xl md:max-w-screen-md px-4">
@@ -30,33 +74,30 @@ const Footer: FC = () => {
             <div className="md:pe-7.5">
               <Link href="#">
                 <Image
-                  src="/images/logo/logo-white.svg"
+                  src="/images/logo/logo.png"
                   alt="Logo"
-                  width={151}
-                  height={32}
+                  width={200}
+                  height={200}
                 />
               </Link>
               <p className="mb-0 font-medium text-lg text-white/50 pt-2.188 pb-1.875">
-                Rakon is a simple, elegant, and secure way to build your bitcoin
-                and crypto portfolio.
+                Nous ne digitalisons pas simplement un établissement — nous
+                construisons l’infrastructure académique du futur.
               </p>
               <p className="text-lg font-medium text-white mb-0">
-                1989 Don Jackson Lane
+                Produit de ELMES
               </p>
               <p className="text-white/50 text-lg font-medium mb-0">
-                Call us:{" "}
-                <Link href="#" className="text-primary hover:text-orange-600">
-                  808-956-9599
-                </Link>
+                (ElectroMecatronique Services)
               </p>
             </div>
           </div>
-          <div className="lg:col-span-2 sm:col-span-6 col-span-12">
+          <div className="lg:col-span-4 sm:col-span-6 col-span-12">
             <h4 className="text-lg text-white dark:text-white font-medium mb-2.375">
               Services
             </h4>
-            <ul>
-              {services.map((item, index) => (
+            <ul className="grid grid-cols-2 gap-2">
+              {services.slice(0, 4).map((item, index) => (
                 <li key={index} className="pb-1.563">
                   <Link
                     href={`/services/${item.slug}`}
@@ -68,67 +109,29 @@ const Footer: FC = () => {
               ))}
             </ul>
           </div>
-          <div className="lg:col-span-2 sm:col-span-6 col-span-12">
-            <h4 className="text-lg text-white dark:text-white font-medium mb-2.375">
-              Company
-            </h4>
-            <ul>
-              <li className="pb-1.563">
-                <Link
-                  href="/portfolio"
-                  className="text-lg font-medium text-white/50 hover:text-primary"
-                >
-                  Portfolio
-                </Link>
-              </li>
-              <li className="pb-1.563">
-                <Link
-                  href="/pricing"
-                  className="text-lg font-medium text-white/50 hover:text-primary"
-                >
-                  Pricing
-                </Link>
-              </li>
-              <li className="pb-1.563">
-                <Link
-                  href="/blogs"
-                  className="text-lg font-medium text-white/50 hover:text-primary"
-                >
-                  Blogs
-                </Link>
-              </li>
-              <li className="pb-1.563">
-                <Link
-                  href="/contact"
-                  className="text-lg font-medium text-white/50 hover:text-primary"
-                >
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </div>
           <div className="lg:col-span-4 md:col-span-7 col-span-12">
             <h4 className="text-lg text-white dark:text-white font-medium sm:mb-2.375 mb-6">
-              Subscribe
+              Vérifier votre compte
             </h4>
             <p className="text-lg text-white/50 font-medium mb-4">
-              Subscribe to get the latest news form us
+              Entrez votre UUID pour vérifier votre compte actif
             </p>
-            <div className="flex sm:flex-nowrap flex-wrap items-center gap-2">
+            <form onSubmit={handleVerifyClient} className="flex sm:flex-nowrap flex-wrap items-center gap-2">
               <input
-                type="email"
-                name="Email"
-                id="email"
-                placeholder="Enter email address"
-                className="text-base font-medium py-4 px-5 !rounded-lg dark:text-white dark:bg-darkmode h-full border border-border_color focus:border-primary dark:border-border_color dark:focus:border-primary"
+                type="text"
+                value={uuid}
+                onChange={(e) => setUuid(e.target.value)}
+                placeholder="Votre UUID"
+                className="text-base font-medium py-4 px-5 !rounded-lg dark:text-white dark:bg-darkmode h-full border border-border_color focus:border-primary dark:border-border_color dark:focus:border-primary flex-1"
               />
-              <Link
-                href="/contact"
-                className="py-4 px-2.188 bg-primary text-white hover:bg-orange-600 rounded-lg duration-500 sm:w-fit w-full"
+              <button
+                type="submit"
+                disabled={loading || !uuid}
+                className="py-4 px-2.188 bg-primary text-white hover:bg-orange-600 rounded-lg duration-500 sm:w-fit w-full disabled:opacity-50"
               >
-                Register
-              </Link>
-            </div>
+                {loading ? "..." : "Vérifier"}
+              </button>
+            </form>
           </div>
         </div>
         <div className="flex md:flex-nowrap flex-wrap gap-6 items-center justify-between sm:pt-17 pt-10">
