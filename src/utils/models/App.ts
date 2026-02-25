@@ -21,6 +21,20 @@ export interface IContact extends Document {
   mission: string;
 }
 
+export interface IWhyUs extends Document {
+  titre: string;
+  description: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IMatricule extends Document {
+  designation: string;
+  value: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface IModule extends Document {
   nom: string;
   icon?: any;
@@ -74,6 +88,22 @@ const ContactSchema: Schema<IContact> = new Schema(
   { timestamps: true },
 );
 
+const WhyUsSchema: Schema<IWhyUs> = new Schema(
+  {
+    titre: { type: String, required: true },
+    description: { type: String, required: true },
+  },
+  { timestamps: true },
+);
+
+const MatriculeSchema: Schema<IMatricule> = new Schema(
+  {
+    designation: { type: String, required: true },
+    value: { type: String, required: true },
+  },
+  { timestamps: true },
+);
+
 const ModuleSchema: Schema<IModule> = new Schema(
   {
     nom: { type: String, required: true },
@@ -118,3 +148,10 @@ export const Package: Model<IPackage> =
 
 export const Contact: Model<IContact> =
   mongoose.models.Contact || mongoose.model<IContact>("Contact", ContactSchema);
+
+export const WhyUs: Model<IWhyUs> =
+  mongoose.models.WhyUs || mongoose.model<IWhyUs>("WhyUs", WhyUsSchema);
+
+export const Matricule: Model<IMatricule> =
+  mongoose.models.Matricule ||
+  mongoose.model<IMatricule>("Matricule", MatriculeSchema);

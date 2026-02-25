@@ -9,20 +9,20 @@ export async function POST(request: NextRequest) {
     if (!uuid) {
       return NextResponse.json(
         { success: false, message: "UUID requis" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     await connectToDatabase();
 
     const client = await Client.findOne({ uuid, isActive: true }).select(
-      "nomComplet email logo uuid quotite isActive"
+      "nomComplet email logo uuid quotite isActive",
     );
 
     if (!client) {
       return NextResponse.json(
         { success: false, message: "Ce client n'a pas encore un compte actif" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     console.error("Erreur vérification client:", error);
     return NextResponse.json(
       { success: false, message: "Erreur serveur" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

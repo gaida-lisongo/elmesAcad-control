@@ -116,7 +116,10 @@ const Footer: FC = () => {
             <p className="text-lg text-white/50 font-medium mb-4">
               Entrez votre UUID pour vérifier votre compte actif
             </p>
-            <form onSubmit={handleVerifyClient} className="flex sm:flex-nowrap flex-wrap items-center gap-2">
+            <form
+              onSubmit={handleVerifyClient}
+              className="flex sm:flex-nowrap flex-wrap items-center gap-2"
+            >
               <input
                 type="text"
                 value={uuid}
@@ -192,6 +195,80 @@ const Footer: FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-darkmode rounded-lg p-6 max-w-md w-full">
+            {clientData ? (
+              <>
+                <h3 className="text-xl font-bold mb-4 text-midnight_text dark:text-white">
+                  Détails du compte
+                </h3>
+                {clientData.logo && (
+                  <div className="mb-4">
+                    <Image
+                      src={clientData.logo}
+                      alt={clientData.nomComplet}
+                      width={100}
+                      height={100}
+                      className="rounded-lg"
+                    />
+                  </div>
+                )}
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Nom
+                    </p>
+                    <p className="font-medium dark:text-white">
+                      {clientData.nomComplet}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Email
+                    </p>
+                    <p className="font-medium dark:text-white">
+                      {clientData.email}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      UUID
+                    </p>
+                    <p className="font-medium dark:text-white text-sm break-all">
+                      {clientData.uuid}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Quotité
+                    </p>
+                    <p className="font-medium dark:text-white">
+                      {clientData.quotite}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl font-bold mb-4 text-red-600">Erreur</h3>
+                <p className="text-gray-700 dark:text-gray-300">{error}</p>
+              </>
+            )}
+            <button
+              onClick={() => {
+                setShowModal(false);
+                setUuid("");
+              }}
+              className="mt-6 w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
     </footer>
   );
 };

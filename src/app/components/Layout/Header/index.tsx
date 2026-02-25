@@ -93,7 +93,7 @@ const Header: React.FC = () => {
     },
     {
       label: "A propos",
-      href: "/portfolio",
+      href: "/about",
     },
     { label: "Contact", href: "/contact" },
   ];
