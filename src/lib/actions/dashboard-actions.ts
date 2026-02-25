@@ -84,11 +84,11 @@ export async function getDashboardData(
       // 7. Calculer le solde
       const balance = amountPerceived - withdrawalsTotal;
 
-      return {
-        totalRevenue: amountPerceived,
+      return serializeData({
+        totalRevenue: completedTransactionsTotal,
         totalSpent: withdrawalsTotal,
         balance,
-        quotite,
+        quotite: quotite,
         transactions,
         withdrawals,
         clients: [],
@@ -103,7 +103,7 @@ export async function getDashboardData(
               ).toFixed(1)
             : "0",
         spentPercent: "0",
-      };
+      });
     }
 
     // ─── POUR ADMIN ───────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ export async function getDashboardData(
       quotite = Number(admin?.quotite ?? 0);
 
       // 4. Calculer le montant perçu
-      const amountPerceived = completedTransactionsTotal * quotite;
+      const amountPerceived = completedTransactionsTotal * 0.2;
 
       // 5. Récupérer les WithdrawAdmin (dépenses de l'admin)
       const withdrawsAdmin = await WithdrawAdmin.find({
@@ -142,7 +142,7 @@ export async function getDashboardData(
         .reduce((sum: number, w: any) => sum + w.amount, 0);
 
       // 7. Calculer le solde
-      const balance = amountPerceived - withdrawalsTotal;
+      const balance = (amountPerceived * quotite) / 100 - withdrawalsTotal;
 
       // 8. Récupérer les clients actifs
       const clients = await Client.find({ isActive: true })
@@ -151,11 +151,11 @@ export async function getDashboardData(
         .limit(5)
         .sort({ createdAt: -1 });
 
-      return {
+      return serializeData({
         totalRevenue: amountPerceived,
         totalSpent: withdrawalsTotal,
         balance,
-        quotite,
+        quotite: quotite / 100,
         transactions,
         withdrawals,
         clients,
@@ -178,10 +178,10 @@ export async function getDashboardData(
                 100
               ).toFixed(1)
             : "0",
-      };
+      });
     }
 
-    return {
+    return serializeData({
       totalRevenue: 0,
       totalSpent: 0,
       balance: 0,
@@ -192,7 +192,7 @@ export async function getDashboardData(
       activities: [],
       revenuePercent: "0",
       spentPercent: "0",
-    };
+    });
   } catch (error) {
     console.error(
       "Erreur lors de la récupération des données du dashboard:",
@@ -372,4 +372,11 @@ export async function createWithdrawal(
       message: "Erreur lors de la création du retrait",
     };
   }
+}
+
+/**
+ * Sérialise les ObjectIds MongoDB en strings pour les Client Components
+ */
+function serializeData(data: any): any {
+  return JSON.parse(JSON.stringify(data));
 }

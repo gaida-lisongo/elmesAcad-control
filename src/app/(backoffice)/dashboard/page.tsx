@@ -163,15 +163,14 @@ export default function DashboardPage() {
 
       {/* ── Main grid ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-12 gap-6">
-        {/* Recent withdrawals */}
+        {/* Recent withdrawals and Withdrawal Form */}
         <Depense
           cols={["Référence", "Montant", "Téléphone", "Date", "Statut"]}
           data={formattedWithdrawals}
         />
 
-        {/* Activity feed and withdrawal form */}
+        {/* Withdrawal form */}
         <FormDepense
-          activityFeed={dashboardData.activities}
           balance={dashboardData.balance}
           userId={user?.id || ""}
           userRole={(user?.role || "client") as "admin" | "client"}

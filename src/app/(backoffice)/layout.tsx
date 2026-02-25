@@ -13,7 +13,7 @@ export default async function BackofficeLayout({
 
   return (
     <div className="dark:bg-darkmode min-h-screen">
-      <div className="container mx-auto lg:max-w-screen-xl md:max-w-screen-md p-6 !pt-34">
+      <div className="container mx-auto lg:max-w-screen-xl md:max-w-screen-md !pt-34">
         <div className="grid grid-cols-12 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-3 col-span-12 lg:block hidden">
