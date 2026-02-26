@@ -129,12 +129,10 @@ export default function DashboardPage() {
     amount: `$${t.amount.toFixed(2)}`,
     type: t.category || "Paiement",
     date: new Date(t.createdAt).toLocaleDateString("fr-FR"),
-    status:
-      t.status === "completed"
-        ? "succès"
-        : t.status === "pending"
-          ? "en attente"
-          : "échoué",
+    status: t.status,
+    student: t.student,
+    classe: t.classe,
+    reference: t.reference,
   }));
 
   // Formater les withdrawals pour Depense (10 derniers)

@@ -7,12 +7,9 @@ import crypto from "crypto";
  * Helper: Verify API credentials
  * Compares the provided apiKey and apiSecret with the client's stored credentials
  */
-async function verifyApiCredentials(
-  apiKey: string,
-  apiSecret: string,
-) {
+async function verifyApiCredentials(apiKey: string, apiSecret: string) {
   const client = await Client.findOne({ apiKey });
-  
+
   if (!client) {
     return { valid: false, error: "Invalid API key", clientId: null };
   }
@@ -23,7 +20,11 @@ async function verifyApiCredentials(
   }
 
   if (!client.isActive) {
-    return { valid: false, error: "Client account is inactive", clientId: null };
+    return {
+      valid: false,
+      error: "Client account is inactive",
+      clientId: null,
+    };
   }
 
   return { valid: true, clientId: client._id };
@@ -40,14 +41,19 @@ export async function POST(request: NextRequest) {
 
     if (!apiKey || !apiSecret) {
       return NextResponse.json(
-        { success: false, error: "Missing API credentials (x-api-key, x-api-secret)" },
+        {
+          success: false,
+          error: "Missing API credentials (x-api-key, x-api-secret)",
+        },
         { status: 401 },
       );
     }
 
     // Verify credentials
-    const credCheck = await connectDB().then(() => verifyApiCredentials(apiKey, apiSecret));
-    
+    const credCheck = await connectDB().then(() =>
+      verifyApiCredentials(apiKey, apiSecret),
+    );
+
     if (!credCheck.valid) {
       return NextResponse.json(
         { success: false, error: credCheck.error },
@@ -58,13 +64,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    const { category, student, classe, amount, phone, reference, description } = body;
+    const {
+      category,
+      student,
+      classe,
+      amount,
+      phone,
+      reference,
+      description,
+      status,
+    } = body;
 
-    if (!category || !student || !classe || amount === undefined || !phone || !reference) {
+    if (
+      !category ||
+      !student ||
+      !classe ||
+      amount === undefined ||
+      !phone ||
+      !reference
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: "Missing required fields: category, student, classe, amount, phone, reference",
+          error:
+            "Missing required fields: category, student, classe, amount, phone, reference",
         },
         { status: 400 },
       );
@@ -81,7 +104,7 @@ export async function POST(request: NextRequest) {
       amount,
       orderNumber,
       phone,
-      status: "pending",
+      status: status || "pending",
       reference,
       description: description || "",
       clientId: credCheck.clientId,
@@ -118,14 +141,19 @@ export async function PUT(request: NextRequest) {
 
     if (!apiKey || !apiSecret) {
       return NextResponse.json(
-        { success: false, error: "Missing API credentials (x-api-key, x-api-secret)" },
+        {
+          success: false,
+          error: "Missing API credentials (x-api-key, x-api-secret)",
+        },
         { status: 401 },
       );
     }
 
     // Verify credentials
-    const credCheck = await connectDB().then(() => verifyApiCredentials(apiKey, apiSecret));
-    
+    const credCheck = await connectDB().then(() =>
+      verifyApiCredentials(apiKey, apiSecret),
+    );
+
     if (!credCheck.valid) {
       return NextResponse.json(
         { success: false, error: credCheck.error },
@@ -174,7 +202,10 @@ export async function PUT(request: NextRequest) {
 
     if (!commande) {
       return NextResponse.json(
-        { success: false, error: "Commande not found or does not belong to this client" },
+        {
+          success: false,
+          error: "Commande not found or does not belong to this client",
+        },
         { status: 404 },
       );
     }
@@ -214,8 +245,10 @@ export async function GET(request: NextRequest) {
 
     // If API credentials provided, use them (external access)
     if (apiKey && apiSecret) {
-      const credCheck = await connectDB().then(() => verifyApiCredentials(apiKey, apiSecret));
-      
+      const credCheck = await connectDB().then(() =>
+        verifyApiCredentials(apiKey, apiSecret),
+      );
+
       if (!credCheck.valid) {
         return NextResponse.json(
           { success: false, error: credCheck.error },
@@ -244,7 +277,11 @@ export async function GET(request: NextRequest) {
 
     // No credentials provided
     return NextResponse.json(
-      { success: false, error: "Authentication required. Provide x-api-key and x-api-secret headers." },
+      {
+        success: false,
+        error:
+          "Authentication required. Provide x-api-key and x-api-secret headers.",
+      },
       { status: 401 },
     );
   } catch (error: any) {
@@ -253,6 +290,69 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: error.message || "Erreur lors de la récupération des commandes",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const { recetteId, status } = await request.json();
+    // Validate recetteId
+    if (!recetteId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing required field: recetteId",
+        },
+        { status: 400 },
+      );
+    }
+
+    await connectDB();
+
+    if (status && !["pending", "completed", "failed"].includes(status)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid status. Must be: pending, completed, or failed",
+        },
+        { status: 400 },
+      );
+    }
+
+    const query = status
+      ? CommandeProduct.findByIdAndUpdate(recetteId, { status }, { new: true })
+      : CommandeProduct.findById(recetteId);
+
+    const recette = await query.populate("clientId", "nomComplet email").lean();
+
+    if (!recette) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Recette not found",
+        },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: JSON.parse(JSON.stringify(recette)),
+      },
+      { status: 200 },
+    );
+  } catch (error: any) {
+    console.error("❌ Erreur PATCH /api/transactions:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          error.message ||
+          "Erreur lors de la mise à jour partielle de la commande",
       },
       { status: 500 },
     );
