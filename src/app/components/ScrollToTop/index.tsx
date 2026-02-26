@@ -39,7 +39,7 @@ export default function ScrollToTop() {
         {user?.id && (
           <Link
             href={
-              "/dashbaord" // TODO: change to profile page when implemented
+              "/dashboard" // TODO: change to profile page when implemented
             }
             target="_blank"
             className="hidden lg:block bg-primary text-white hover:bg-orange-600 text-sm px-4 py-3.5 leading-none rounded-lg font-medium text-nowrap"

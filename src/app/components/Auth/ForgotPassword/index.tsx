@@ -61,7 +61,7 @@ const ForgotPassword = () => {
         <>
           <p className="mb-6 text-center text-base text-dark/60 dark:text-white/60">
             Saisissez votre adresse email pour recevoir un lien de
-            rÃ©initialisation de mot de passe.
+            réinitialisation de mot de passe.
           </p>
           <form onSubmit={handleSubmit}>
             <div className="mb-[22px]">

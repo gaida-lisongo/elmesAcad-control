@@ -56,7 +56,7 @@ const Teams = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
               <div className="relative border border-border dark:border-darkborder rounded-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group-hover:scale-105 bg-gradient-to-br from-white/50 to-white/30 dark:from-darkmode/50 dark:to-darkmode/30">
                 {/* Image Header */}
-                <div className="relative w-full h-56 bg-gradient-to-br from-primary/30 to-primary/10 dark:from-primary/20 dark:to-primary/5 overflow-hidden">
+                <div className="relative w-full h-85 bg-gradient-to-br from-primary/30 to-primary/10 dark:from-primary/20 dark:to-primary/5 overflow-hidden">
                   {admin.photoUrl ? (
                     <Image
                       src={admin.photoUrl}
