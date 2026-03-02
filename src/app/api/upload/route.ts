@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
     const uploadedFile = await megaService.uploadFile(file);
     const fileUrl = await megaService.getLink(uploadedFile);
 
+    console.log("File Url:", fileUrl);
+
     return NextResponse.json({
       success: true,
       url: fileUrl,
