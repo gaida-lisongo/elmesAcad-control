@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File;
     const apiKey = formData.get("apiKey") as string;
     const apiSecret = formData.get("apiSecret") as string;
-    console.log("Payload auth", {apikey, apiSecret});
+    console.log("Payload auth", {apiKey, apiSecret});
     
     if (!file || !apiKey || !apiSecret) {
       return NextResponse.json(
