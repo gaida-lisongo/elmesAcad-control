@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       size: file.size,
     });
   } catch (error: any) {
+    console.error("Error mega :", error);
     return NextResponse.json(
       { error: error.message || "Upload failed" },
       { status: 500 },
