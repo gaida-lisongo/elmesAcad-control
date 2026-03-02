@@ -11,7 +11,8 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File;
     const apiKey = formData.get("apiKey") as string;
     const apiSecret = formData.get("apiSecret") as string;
-
+    console.log("Payload auth", {apikey, apiSecret});
+    
     if (!file || !apiKey || !apiSecret) {
       return NextResponse.json(
         { error: "Missing file, apiKey or apiSecret" },
@@ -20,6 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     const client = await Client.findOne({ apiKey, apiSecret });
+    console.log("Client Data:", client);
 
     if (!client || !client.isActive) {
       return NextResponse.json(
